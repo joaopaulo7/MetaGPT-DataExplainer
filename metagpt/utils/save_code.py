@@ -3,6 +3,7 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 import os
+from pathlib import Path
 
 import nbformat
 
@@ -10,24 +11,30 @@ from metagpt.const import DATA_PATH
 from metagpt.utils.common import write_json_file
 
 
-def save_code_file(name: str, code_context: str, file_format: str = "py") -> None:
+def save_code_file(name: str, code_context: str, save_dir: Path = DATA_PATH, file_format: str = "py") -> None:
     """
     Save code files to a specified path.
 
     Args:
     - name (str): The name of the folder to save the files.
     - code_context (str): The code content.
+    - save_dir (str): The directory to save the code.
     - file_format (str, optional): The file format. Supports 'py' (Python file), 'json' (JSON file), and 'ipynb' (Jupyter Notebook file). Default is 'py'.
 
 
     Returns:
     - None
     """
+    
+    
     # Create the folder path if it doesn't exist
-    os.makedirs(name=DATA_PATH / "output" / f"{name}", exist_ok=True)
+    os.makedirs(name=save_dir / "output" / f"{name}", exist_ok=True)
 
     # Choose to save as a Python file or a JSON file based on the file format
-    file_path = DATA_PATH / "output" / f"{name}/code.{file_format}"
+    file_path = save_dir / "output" / f"{name}/code.{file_format}"
+    
+    
+    
     if file_format == "py":
         file_path.write_text(code_context + "\n\n", encoding="utf-8")
     elif file_format == "json":
