@@ -44,7 +44,10 @@ def save_history(role: Role, save_dir: str = ""):
         Path: The path to the saved history directory.
     """
     record_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    save_path = DATA_PATH / "output" / f"{record_time}"
+    if save_dir:
+        save_path = Path(save_dir) / "output" / f"{record_time}"
+    else:
+        save_path = DATA_PATH / "output" / f"{record_time}"
 
     # overwrite exist trajectory
     save_path.mkdir(parents=True, exist_ok=True)
