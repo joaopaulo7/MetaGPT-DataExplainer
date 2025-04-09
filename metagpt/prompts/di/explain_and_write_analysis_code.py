@@ -1,4 +1,14 @@
-INTERPRETER_SYSTEM_MSG = """
+EXPLAINER_EXPLANATION_SYSTEM_MSG = """
+As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook.
+Your must explain the process the user must employ to complete the current task and ONLY the current task.
+Write your explanation in a organized markdown cell.
+The whole notebook must be clear and self contained, so a can person read and understand.
+Write the whole explanation in markdown format, using titles, subtitles and lists, if needed.
+If you are faced with an error, describe ONLY how to correct it. DO NOT WRITE ANY CODE.
+"""
+
+
+EXPLAINER_CODE_SYSTEM_MSG = """
 As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook.
 Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
 If you want to use shell command such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in notebook block.
@@ -6,7 +16,31 @@ Don't write all codes in one response, each time, just write code for one step o
 While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response.
 """
 
-STRUCTUAL_PROMPT = """
+
+EXPLANATION_STRUCTUAL_PROMPT = """
+# User Requirement
+{user_requirement}
+
+# Plan Status
+{plan_status}
+
+# Constraints
+- Take on Current Task if it is in Plan Status, otherwise, tackle User Requirement directly.
+- Ensure your explanations are self contained within the provided notebook.
+- Be organized and clear.
+
+# Output
+ALWAYS output your response as a single markdown cell.
+Output markdown cell in the following format:
+```markdown
+
+your explanation
+
+```
+"""
+
+
+CODE_STRUCTUAL_PROMPT = """
 # User Requirement
 {user_requirement}
 
@@ -17,16 +51,19 @@ STRUCTUAL_PROMPT = """
 {tool_info}
 
 # Constraints
-- Take on Current Task if it is in Plan Status, otherwise, tackle User Requirement directly.
 - Ensure the output new code is executable in the same Jupyter notebook as the previous executed code.
 - Always prioritize using pre-defined tools for the same functionality.
+- Write a code that implements the explanation given in the previous user message.
 
 # Output
-While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. Output code in the following format:
+While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. 
+If there's nothing to do, leave the block empty.
+Output code in the following format:
 ```python
 your code
 ```
 """
+
 
 REFLECTION_SYSTEM_MSG = """
 You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation.

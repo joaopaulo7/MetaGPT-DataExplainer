@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
+from metagpt.actions.di.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.schema import Message
+from metagpt.tools.tool_recommend import BM25ToolRecommender
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -29,11 +30,23 @@ class DataExplainer(DataInterpreter):
     profile: str = "DataExplainer"
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
+    @model_validator(mode="after")
+    def set_plan_and_tool(self) -> "Interpreter":
+        self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
+        self.use_plan = (
+            self.react_mode == "plan_and_act"
+        )  # create a flag for convenience, overwrite any passed-in value
+        if self.tools and not self.tool_recommender:
+            self.tool_recommender = BM25ToolRecommender(tools=self.tools)
+        self.set_actions([ExplainAndWriteAnalysisCode])
+        self._set_state(0)
+        return self
+
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         code, _, _ = await self._write_and_exec_code()
-        return Message(content=code, role="assistant", sent_from=self._setting, cause_by=WriteAnalysisCode)
+        return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -58,11 +71,13 @@ class DataExplainer(DataInterpreter):
 
         while not success and counter < max_retry:
             ### write code ###
-            code, cause_by = await self._write_code(counter, plan_status, tool_info)
+            code, explanation, cause_by = await self._write_code(counter, plan_status, tool_info)
 
+            self.working_memory.add(Message(content=explanation, role="assistant", cause_by=cause_by))
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
             ### execute code ###
+            _, _ = await self.execute_code.run(explanation, language="markdown")
             result, success = await self.execute_code.run(code)
             print(result)
 
@@ -79,17 +94,21 @@ class DataExplainer(DataInterpreter):
 
         return code, result, success
 
+    async def run(self, with_message=None) -> Message | None:
+        self.user_requirement = with_message
+        await super().run(with_message)
+
     async def _write_code(
         self,
         counter: int,
         plan_status: str = "",
         tool_info: str = "",
     ):
-        todo = self.rc.todo  # todo is WriteAnalysisCode
+        todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        code = await todo.run(
+        code, explanation = await todo.run(
             user_requirement=self.user_requirement,
             plan_status=plan_status,
             tool_info=tool_info,
@@ -97,4 +116,4 @@ class DataExplainer(DataInterpreter):
             use_reflection=use_reflection,
         )
 
-        return code, todo
+        return code, explanation, todo
