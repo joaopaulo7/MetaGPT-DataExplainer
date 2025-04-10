@@ -69,6 +69,11 @@ class DataExplainer(DataInterpreter):
         # data info
         await self._check_data()
 
+        # if notebook is empty, write a title cell
+        if not self.execute_code.nb.cells:
+            title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
+            _, _ = await self.execute_code.run(title, language="markdown")
+
         while not success and counter < max_retry:
             ### write code ###
             code, explanation, cause_by = await self._write_code(counter, plan_status, tool_info)
@@ -117,3 +122,17 @@ class DataExplainer(DataInterpreter):
         )
 
         return code, explanation, todo
+
+
+    async def _write_title(
+        self,
+        plan_contex: str = ""
+    ):
+        todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
+        logger.info(f"ready to write notebook title")
+
+        title = await todo.write_title(
+            plan_contex=plan_contex
+        )
+
+        return title

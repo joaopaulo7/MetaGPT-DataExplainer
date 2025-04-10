@@ -81,3 +81,19 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             code = CodeParser.parse_code(text=rsp, lang="python")
 
         return code, explanation
+
+
+    async def write_title(
+            self,
+            plan_contex: str = "",
+            **kwargs,
+    ) -> tuple[str, str]:
+        # generate markdown explanation
+        system_msg = TITLE_SYSTEM_MSG.format(
+            plan_contex=plan_contex.split('## Current Task')[0]  # remove irrelevant information
+        )
+
+        # LLM call
+        rsp = await self.llm.aask("", system_msgs=[system_msg], **kwargs)
+        title = CodeParser.parse_code(text=rsp, lang="markdown")
+        return title
