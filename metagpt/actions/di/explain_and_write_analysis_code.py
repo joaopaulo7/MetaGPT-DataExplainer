@@ -11,12 +11,13 @@ from typing import Any, Coroutine
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.prompts.di.explain_and_write_analysis_code import (
     DEBUG_REFLECTION_EXAMPLE,
-    EXPLAINER_EXPLANATION_SYSTEM_MSG,
-    EXPLAINER_CODE_SYSTEM_MSG,
+    TITLE_SYSTEM_MSG,
+    EXPLANATION_SYSTEM_MSG,
+    CODE_SYSTEM_MSG,
+    EXPLANATION_STRUCTUAL_PROMPT,
+    CODE_STRUCTUAL_PROMPT,
     REFLECTION_PROMPT,
     REFLECTION_SYSTEM_MSG,
-    CODE_STRUCTUAL_PROMPT,
-    EXPLANATION_STRUCTUAL_PROMPT,
 )
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
@@ -58,7 +59,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
-        rsp = await self.llm.aask(context, system_msgs=[EXPLAINER_EXPLANATION_SYSTEM_MSG], **kwargs)
+        rsp = await self.llm.aask(context, system_msgs=[EXPLANATION_SYSTEM_MSG], **kwargs)
         explanation = CodeParser.parse_code(text=rsp, lang="markdown")
 
 
@@ -66,8 +67,9 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         structual_prompt = CODE_STRUCTUAL_PROMPT.format(
             user_requirement=user_requirement,
             plan_status=plan_status,
-            tool_info=tool_info
-        )
+            tool_info=tool_info,
+            explanation=explanation,
+            )
 
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
 
@@ -75,7 +77,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         if use_reflection:
             code = await self._debug_with_reflection(context=context, working_memory=working_memory)
         else:
-            rsp = await self.llm.aask(context, system_msgs=[EXPLAINER_CODE_SYSTEM_MSG], **kwargs)
+            rsp = await self.llm.aask(context, system_msgs=[CODE_SYSTEM_MSG], **kwargs)
             code = CodeParser.parse_code(text=rsp, lang="python")
 
         return code, explanation
