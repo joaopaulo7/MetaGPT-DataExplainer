@@ -52,7 +52,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         # generate markdown explanation
         structual_prompt = EXPLANATION_STRUCTUAL_PROMPT.format(
             user_requirement=user_requirement,
-            plan_status=plan_status
+            plan_status=plan_status.split('## Task Guidance')[0] #revome code-related task guidance
         )
 
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
