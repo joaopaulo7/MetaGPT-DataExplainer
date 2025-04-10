@@ -55,7 +55,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             plan_status=plan_status
         )
 
-        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] +["##Notebook"]+ working_memory)
+        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
         rsp = await self.llm.aask(context, system_msgs=[EXPLAINER_EXPLANATION_SYSTEM_MSG], **kwargs)
@@ -69,7 +69,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             tool_info=tool_info
         )
 
-        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] +["##Notebook"]+ working_memory + [Message(content=explanation, role="assistant")])
+        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
         if use_reflection:
