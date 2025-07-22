@@ -6,8 +6,10 @@ from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
+from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message
 from metagpt.tools.tool_recommend import BM25ToolRecommender
+from metagpt.strategy.explainer_planner import ExplainerPlanner
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -28,10 +30,12 @@ Output a json following the format:
 class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
+    nb_state: str = ""
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
-    def set_plan_and_tool(self) -> "Interpreter":
+    def set_plan_and_tool(self) -> "Explainer":
+        self.planner = ExplainerPlanner()
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
         self.use_plan = (
             self.react_mode == "plan_and_act"
@@ -42,12 +46,26 @@ class DataExplainer(DataInterpreter):
         self._set_state(0)
         return self
 
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
+        assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
+        self.rc.react_mode = react_mode
+        if react_mode == RoleReactMode.REACT:
+            self.rc.max_react_loop = max_react_loop
+        elif react_mode == RoleReactMode.PLAN_AND_ACT:
+            self.planner = ExplainerPlanner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run)
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
+    def _add_to_nb(self, cell_text: str, cell_type: str):
+        if cell_type == "markdown":
+            self.nb_state += cell_text + "\n"
+        elif cell_type == "code":
+            self.nb_state += "```python\n" + cell_text + "\n```\n"
+        else:
+            self.nb_state += "```output\n" + cell_text + "\n```\n"
 
     async def _write_and_exec_code(self, max_retry: int = 3):
         counter = 0
@@ -73,13 +91,17 @@ class DataExplainer(DataInterpreter):
         if not self.execute_code.nb.cells:
             title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
             _, _ = await self.execute_code.run(title, language="markdown")
+            self._add_to_nb(cell_text=title, cell_type="markdown")
 
         while not success and counter < max_retry:
             ### write code ###
             code, explanation, cause_by = await self._write_code(counter, plan_status, tool_info)
 
             self.working_memory.add(Message(content=explanation, role="assistant", cause_by=cause_by))
+            self._add_to_nb(cell_text=explanation, cell_type="markdown")
+
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            self._add_to_nb(cell_text=code, cell_type="code")
 
             ### execute code ###
             _, _ = await self.execute_code.run(explanation, language="markdown")
@@ -87,6 +109,7 @@ class DataExplainer(DataInterpreter):
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
+            self._add_to_nb(cell_text=result, cell_type="result")
 
             ### process execution result ###
             counter += 1
@@ -119,6 +142,7 @@ class DataExplainer(DataInterpreter):
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
             use_reflection=use_reflection,
+            nb_state=self.nb_state
         )
 
         return code, explanation, todo

@@ -44,6 +44,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         tool_info: str = "",
         working_memory: list[Message] = None,
         use_reflection: bool = False,
+        nb_state: str = "",
         memory: list[Message] = None,
         **kwargs,
     ) -> tuple[str, str]:
@@ -53,7 +54,8 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         # generate markdown explanation
         structual_prompt = EXPLANATION_STRUCTUAL_PROMPT.format(
             user_requirement=user_requirement,
-            plan_status=plan_status.split('## Task Guidance')[0] #revome code-related task guidance
+            plan_status=plan_status.split('## Task Guidance')[0], #revome code-related task guidance
+            nb_state=nb_state
         )
 
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
@@ -69,6 +71,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             plan_status=plan_status,
             tool_info=tool_info,
             explanation=explanation,
+            nb_state=nb_state
             )
 
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)

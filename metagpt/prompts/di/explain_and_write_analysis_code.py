@@ -15,7 +15,6 @@ Follow the format:
 <your text>
 ```
 
-
 {plan_contex}
 """
 
@@ -23,10 +22,10 @@ EXPLANATION_SYSTEM_MSG = """
 As a data scientist, you are tasked with creating a Jupyter notebook step-by-step.
 You are given the following:
 - User Request, which is your overall goal; 
-- Plan Status, which is the process you are following to achieve said goal; 
-- Current Task, which is the the step you must tackle now;
+- Plan Status, which is the process you are following to achieve said goal;
+- Notebook State, which is how the jupyter notebook currently is.
 
-Currently, you must write about the Current Task and ONLY the Current Task.
+Currently, you must write about the current step in the process.
 If code is needed, explain the process you will employ to complete the task.
 If no code is needed, complete the task in your output.
 Write in a didactic manner. Use markdown tags, like titles and lists, as you see fit.
@@ -38,24 +37,17 @@ CODE_SYSTEM_MSG = """
 As a data scientist, you are tasked with creating a Jupyter notebook step-by-step.
 You are given the following:
 - User Request, which is your overall goal; 
-- Plan Status, which is the process you are following to achieve said goal; 
-- Current Task, which is the the step you must tackle now;
-- Last Cell, which is the last markdown cell you wrote.
+- Plan Status, which is the process you are following to achieve said goal;
+- Notebook State, which is how the jupyter notebook currently is.
 
 Currently, you must write the code to complete the current task and ONLY the current task.
-If the task dosen't require code, return an empty code block. If it does, take the explanation given in Last Cell as a guide. 
+If the task doesn't require code, return an code block with only an space character. If it does, take the current Notebook State as a guide. 
 Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
 If you want to use shell command such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in notebook block.
 """
 
 
 EXPLANATION_STRUCTUAL_PROMPT = """
-# User Request
-{user_requirement}
-
-# Plan Status
-{plan_status}
-
 # Constraints
 - Take on Current Task if it is in Plan Status, otherwise, tackle User Requirement directly.
 - Ensure your outputs are self contained within the provided notebook.
@@ -67,22 +59,19 @@ Output text in the following format:
 ```markdown
 <your text>
 ```
-"""
 
-
-CODE_STRUCTUAL_PROMPT = """
 # User Request
 {user_requirement}
 
 # Plan Status
 {plan_status}
 
-# Tool Info
-{tool_info}
+# Notebook State
+{nb_state}
+"""
 
-# Last Cell
-{explanation}
 
+CODE_STRUCTUAL_PROMPT = """
 # Constraints
 - Ensure the output new code is executable in the same Jupyter notebook as the previous executed code.
 - Always prioritize using pre-defined tools for the same functionality.
@@ -94,6 +83,19 @@ Output code in the following format:
 ```python
 <your code>
 ```
+
+# User Request
+{user_requirement}
+
+# Plan Status
+{plan_status}
+
+# Tool Info
+{tool_info}
+
+# Notebook State
+{nb_state}
+{explanation}
 """
 
 
