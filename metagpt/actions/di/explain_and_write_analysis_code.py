@@ -59,7 +59,8 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         )
 
         context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
-
+        
+        
         # LLM call
         rsp = await self.llm.aask(context, system_msgs=[EXPLANATION_SYSTEM_MSG], **kwargs)
         explanation = CodeParser.parse_code(text=rsp, lang="markdown")

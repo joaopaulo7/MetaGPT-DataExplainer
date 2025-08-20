@@ -11,6 +11,8 @@ from metagpt.schema import Message
 from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.strategy.explainer_planner import ExplainerPlanner
 
+from time import sleep
+
 REACT_THINK_PROMPT = """
 # User Requirement
 {user_requirement}
@@ -61,7 +63,7 @@ class DataExplainer(DataInterpreter):
 
     def _add_to_nb(self, cell_text: str, cell_type: str):
         if cell_type == "markdown":
-            self.nb_state += cell_text + "\n"
+            self.nb_state += "```markdown\n" + cell_text + "\n```\n"
         elif cell_type == "code":
             self.nb_state += "```python\n" + cell_text + "\n```\n"
         else:
@@ -113,6 +115,7 @@ class DataExplainer(DataInterpreter):
 
             ### process execution result ###
             counter += 1
+            sleep(4)
 
             # if not success and counter >= max_retry:
             #     logger.info("coding failed!")
