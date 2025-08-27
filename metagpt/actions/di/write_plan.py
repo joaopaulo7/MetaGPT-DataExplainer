@@ -22,7 +22,8 @@ PROMPT_TEMPLATE: str = """
 # Available Task Types:
 {task_type_desc}
 # Task:
-Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
+Based on the context, write an in depth plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
+Try to be as granular as possible given the maximum number of tasks allowed.
 If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
 If you encounter errors on the current task, revise and output the current single task only.
 Output a list of jsons following the format:
@@ -41,7 +42,7 @@ Output a list of jsons following the format:
 
 
 class WritePlan(Action):
-    async def run(self, context: list[Message], max_tasks: int = 5) -> str:
+    async def run(self, context: list[Message], max_tasks: int = 7) -> str:
         task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
         prompt = PROMPT_TEMPLATE.format(
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc

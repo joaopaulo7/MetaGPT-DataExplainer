@@ -20,7 +20,7 @@ from metagpt.prompts.di.explain_and_write_analysis_code import (
     REFLECTION_SYSTEM_MSG,
 )
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, ParsingErrorException
 
 
 class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
@@ -58,13 +58,22 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             nb_state=nb_state
         )
 
-        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
-        
-        
-        # LLM call
-        rsp = await self.llm.aask(context, system_msgs=[EXPLANATION_SYSTEM_MSG], **kwargs)
-        explanation = CodeParser.parse_code(text=rsp, lang="markdown")
 
+        # LLM call
+        success = False
+        error_msg = ""
+        while not success:
+            context = self.llm.format_msg(memory
+                +[Message(content=structual_prompt, role="user")] 
+                +working_memory
+                +[Message(content=error_msg, role="user")])
+            rsp = await self.llm.aask(context, system_msgs=[EXPLANATION_SYSTEM_MSG], **kwargs)
+            try:
+                explanation = CodeParser.parse_code(text=rsp, lang="markdown")
+                success = True
+            except ParsingErrorException:
+                error_msg = "Error: No markdown block found. Encapsulate your explanation in a markdown block."
+                pass
 
         # generate code
         structual_prompt = CODE_STRUCTUAL_PROMPT.format(
@@ -98,6 +107,15 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         )
 
         # LLM call
-        rsp = await self.llm.aask("", system_msgs=[system_msg], **kwargs)
-        title = CodeParser.parse_code(text=rsp, lang="markdown")
+        success = False
+        error_msg = ""
+        while not success:
+            rsp = await self.llm.aask(error_msg, system_msgs=[system_msg], **kwargs)
+            try:
+                title = CodeParser.parse_code(text=rsp, lang="markdown")
+                success = True
+            except ParsingErrorException:
+                error_msg = "Error: No markdown block found. Encapsulate your explanation in a markdown block."
+                pass
+                
         return title

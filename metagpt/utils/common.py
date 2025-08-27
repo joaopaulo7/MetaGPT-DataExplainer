@@ -247,6 +247,10 @@ class OutputParser:
             return [] if data_type is list else {}
 
 
+class ParsingErrorException(Exception):
+    pass
+
+
 class CodeParser:
     @classmethod
     def parse_block(cls, block: str, text: str) -> str:
@@ -290,8 +294,8 @@ class CodeParser:
         else:
             logger.error(f"{pattern} not match following text:")
             logger.error(text)
-            # raise Exception
-            return text  # just assume original text is code
+            raise ParsingErrorException(f"no match for langauge {lang}")
+            #return text  # just assume original text is code
         return code
 
     @classmethod
