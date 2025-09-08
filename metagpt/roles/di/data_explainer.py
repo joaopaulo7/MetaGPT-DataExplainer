@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+
 from pydantic import Field, model_validator
 
+from metagpt.actions import Action
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
 from metagpt.logs import logger
@@ -32,7 +35,7 @@ Output a json following the format:
 class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
-    nb_state: str = ""
+    nb_state: dict = {"cells": []}
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
@@ -61,13 +64,36 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
-    def _add_to_nb(self, cell_text: str, cell_type: str):
-        if cell_type == "markdown":
-            self.nb_state += "```markdown\n" + cell_text + "\n```\n"
-        elif cell_type == "code":
-            self.nb_state += "```python\n" + cell_text + "\n```\n"
-        else:
-            self.nb_state += "```output\n" + cell_text + "\n```\n"
+    def _add_to_nb(self, source: str, cell_type: str, outputs: dict = None):
+        new_cell = {
+            'cell_type': cell_type,
+            'source': source.splitlines(keepends=True)
+        }
+
+        if outputs:
+            new_cell['outputs'] = []
+            for output in outputs:
+                if output['output_type'] == "stream":
+                    new_cell['outputs'].append({
+                        'output_type': "stream",
+                        'text': output['text']})
+
+                elif output['output_type'] == "display_data":
+                    new_cell['outputs'].append({
+                        'output_type': "display_data",
+                        'data': {'text/plain': "IMAGE"}})
+
+                elif output['output_type'] == "error":
+                    new_cell['outputs'].append({
+                        'output_type': "error",
+                        'ename': output['ename'],
+                        'evalue': output['evalue'],
+                        'traceback': output['traceback'][:4] + output['traceback'][-3:]}) # ignore traceback middle (less important)
+
+        self.nb_state['cells'].append(new_cell)
+
+    def _get_nb_state(self):
+        return json.dumps(self.nb_state, indent=4)
 
     async def _write_and_exec_code(self, max_retry: int = 3):
         counter = 0
@@ -93,29 +119,22 @@ class DataExplainer(DataInterpreter):
         if not self.execute_code.nb.cells:
             title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
             _, _ = await self.execute_code.run(title, language="markdown")
-            self._add_to_nb(cell_text=title, cell_type="markdown")
+            self._add_to_nb(source=title, cell_type="markdown")
 
         while not success and counter < max_retry:
-            ### write code ###
-            code, explanation, cause_by = await self._write_code(counter, plan_status, tool_info)
+            ### write and run explanation ###
+            markdown = await self._write_markdown(plan_status)
+            _, _ = await self.execute_code.run(markdown, language="markdown")
+            self._add_to_nb(source=markdown, cell_type="markdown")
+            
+            ### write and run code ###
+            code, cause_by = await self._write_code(counter, plan_status, tool_info)
+            outputs, success = await self.execute_code.run(code)
+            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
+            print(self._get_nb_state())
 
-            self.working_memory.add(Message(content=explanation, role="assistant", cause_by=cause_by))
-            self._add_to_nb(cell_text=explanation, cell_type="markdown")
-
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
-            self._add_to_nb(cell_text=code, cell_type="code")
-
-            ### execute code ###
-            _, _ = await self.execute_code.run(explanation, language="markdown")
-            result, success = await self.execute_code.run(code)
-            print(result)
-
-            self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
-            self._add_to_nb(cell_text=result, cell_type="result")
-
-            ### process execution result ###
             counter += 1
-            sleep(4)
+            sleep(2)
 
             # if not success and counter >= max_retry:
             #     logger.info("coding failed!")
@@ -123,38 +142,56 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success
+
+        return code, json.dumps(outputs), success
 
     async def run(self, with_message=None) -> Message | None:
         self.user_requirement = with_message
         await super().run(with_message)
+
+
+    async def _write_markdown(
+        self,
+        plan_status: str = "",
+    ) -> str:
+        todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
+        logger.info(f"ready to {todo.name}")
+
+        markdown = await todo.write_markdown(
+            user_requirement=self.user_requirement,
+            plan_status=plan_status,
+            working_memory=self.working_memory.get(),
+            nb_state=self._get_nb_state()
+        )
+
+        return markdown
 
     async def _write_code(
         self,
         counter: int,
         plan_status: str = "",
         tool_info: str = "",
-    ):
+    ) -> tuple[str, Action]:
         todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        code, explanation = await todo.run(
+        code = await todo.write_code(
             user_requirement=self.user_requirement,
             plan_status=plan_status,
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
             use_reflection=use_reflection,
-            nb_state=self.nb_state
+            nb_state=self._get_nb_state()
         )
 
-        return code, explanation, todo
+        return code, todo
 
 
     async def _write_title(
         self,
         plan_contex: str = ""
-    ):
+    ) -> str:
         todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to write notebook title")
 

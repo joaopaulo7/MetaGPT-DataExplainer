@@ -5,10 +5,21 @@ You are given the following:
 - the Context, which is the context of the notebook;
 - the Current Plan, which is the process for creating the notebook;
 
-Currently, you must write a markdown title cell and an introduction to the notebook and ONLY that.
-Write in a clear and informative manner. Use a markdown code block.
+Currently, you must write a markdown title and an introduction cell to the notebook and ONLY that.
+Write in a clear and informative manner.
 
-{plan_contex}
+# Output
+You must use the following output format, ensuring every source line except the last ends with a newline character:
+```json
+{
+"cell_type": "markdown",
+"source": [
+"<first_line>\\n",
+"<second_line>\\n",
+"<last_line>"
+]
+}
+```
 """
 
 EXPLANATION_SYSTEM_MSG = """
@@ -21,13 +32,24 @@ You are given the following:
 Currently, you must write a markdown cell to explain the current step in the process.
 If code is needed, explain, in text, the process you will employ to complete the task.
 If no code is needed, complete the task in your output.
-Write in a didactic manner. Use markdown tags, like titles and lists, as you see fit.
+Write in a didactic manner.
 If you are faced with an error, describe only **HOW** to correct it.
 
 # Constraints
 - Ensure your response is self-contained within the provided notebook.
-- **Avoid** using python code blocks in your response.
-- Always encapsulate your response in a single markdown code block.
+
+# Output
+You must use the following output format, ensuring every source line except the last ends with a newline character:
+```json
+{
+"cell_type": "markdown",
+"source": [
+"<first_line>\\n",
+"<second_line>\\n",
+"<last_line>"
+]
+}
+```
 """
 
 
@@ -39,25 +61,37 @@ You are given the following:
 - Notebook State, which is how the jupyter notebook currently is.
 
 Currently, you must write the code to complete the current task and ONLY the current task.
-If the task doesn't require code, return a python code block with a single space character. If it does, take the current Notebook State as a guide. 
+If it does, take the current Notebook State as a guide. 
 Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
 If you want to use shell commands such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in a notebook block.
 
 # Constraints
 - Ensure the output new code is executable in the same Jupyter notebook.
 - Always prioritize using pre-defined tools for the same functionality.
+- For tasks that don't require code, such as summaries, output an empty source.
 
 # Output
 While some concise thoughts are helpful, code is absolutely required.
-Always output one and only one code block in your response. 
+Always output one and only one code cell in your response.
 Output code in the following format:
-```python
-<your code>
+```json
+{
+"cell_type": "code",
+"source": [
+"<first_line>\\n",
+"<second_line>\\n",
+"<last_line>"
+]
+}
 ```
 """
 
+TITLE_STRUCTURAL_PROMPT = """
+# Context
+{plan_contex}
+"""
 
-EXPLANATION_STRUCTUAL_PROMPT = """
+EXPLANATION_STRUCTURAL_PROMPT = """
 # User Request
 {user_requirement}
 
@@ -69,7 +103,7 @@ EXPLANATION_STRUCTUAL_PROMPT = """
 """
 
 
-CODE_STRUCTUAL_PROMPT = """
+CODE_STRUCTURAL_PROMPT = """
 # User Request
 {user_requirement}
 
@@ -81,7 +115,6 @@ CODE_STRUCTUAL_PROMPT = """
 
 # Notebook State
 {nb_state}
-{explanation}
 """
 
 

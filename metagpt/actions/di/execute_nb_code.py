@@ -12,6 +12,7 @@ import re
 from typing import Literal, Tuple
 
 import nbformat
+from django.contrib.messages.api import success
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionComplete, CellTimeoutError, DeadKernelError
 from nbclient.util import ensure_async
@@ -222,7 +223,7 @@ class ExecuteNbCode(Action):
         except NameError:
             return False
 
-    async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, str]:
+    async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, dict]:
         """set timeout for run code.
         returns the success or failure of the cell execution, and an optional error message.
         """
@@ -230,20 +231,23 @@ class ExecuteNbCode(Action):
 
         try:
             await self.nb_client.async_execute_cell(cell, cell_index)
-            return self.parse_outputs(self.nb.cells[-1].outputs)
+            for output in self.nb.cells[-1].outputs:
+                if output['output_type'] == "error":
+                    return False, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
+            return True, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
         except CellTimeoutError:
             assert self.nb_client.km is not None
             await self.nb_client.km.interrupt_kernel()
             await asyncio.sleep(1)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
-            return False, error_msg
+            return False, {"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}
         except DeadKernelError:
             await self.reset()
-            return False, "DeadKernelError"
+            return False, {"output_type": "error", "ename": "DeadKernelError", "evalue": error_msg, 'traceback': [""]}
         except Exception:
-            return self.parse_outputs(self.nb.cells[-1].outputs)
+            return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 
-    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[str, bool]:
+    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[dict, bool]:
         """
         return the output of code execution, and a success indicator (bool) of code execution.
         """
@@ -261,17 +265,17 @@ class ExecuteNbCode(Action):
                 cell_index = len(self.nb.cells) - 1
                 success, outputs = await self.run_cell(self.nb.cells[-1], cell_index)
 
-                if "!pip" in code:
-                    success = False
-                    outputs = outputs[-INSTALL_KEEPLEN:]
-                elif "git clone" in code:
-                    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
+                #if "!pip" in code:
+                #    success = False
+                #    outputs = outputs[-INSTALL_KEEPLEN:]
+                #elif "git clone" in code:
+                #    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
 
             elif language == "markdown":
                 # add markdown content to markdown cell in a notebook.
                 self.add_markdown_cell(code)
                 # return True, beacuse there is no execution failure for markdown cell.
-                outputs, success = code, True
+                outputs, success = {"source": code}, True
             else:
                 raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
 

@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import json
 from typing import Any, Coroutine
 
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
@@ -14,10 +15,11 @@ from metagpt.prompts.di.explain_and_write_analysis_code import (
     TITLE_SYSTEM_MSG,
     EXPLANATION_SYSTEM_MSG,
     CODE_SYSTEM_MSG,
-    EXPLANATION_STRUCTUAL_PROMPT,
-    CODE_STRUCTUAL_PROMPT,
+    TITLE_STRUCTURAL_PROMPT,
+    EXPLANATION_STRUCTURAL_PROMPT,
+    CODE_STRUCTURAL_PROMPT,
     REFLECTION_PROMPT,
-    REFLECTION_SYSTEM_MSG,
+    REFLECTION_SYSTEM_MSG, TITLE_STRUCTURAL_PROMPT,
 )
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, ParsingErrorException
@@ -37,85 +39,94 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         reflection = CodeParser.parse_code(block=None, text=rsp)
         return reflection
 
-    async def run(
-        self,
-        user_requirement: str,
-        plan_status: str = "",
-        tool_info: str = "",
-        working_memory: list[Message] = None,
-        use_reflection: bool = False,
-        nb_state: str = "",
-        memory: list[Message] = None,
-        **kwargs,
-    ) -> tuple[str, str]:
+
+    async def _ask_and_parse_json(self,
+                                  structural_prompt: str,
+                                  system_msg: str,
+                                  working_memory: list[Message] = [],
+                                  use_reflection: bool = False,
+                                  memory: list[Message] = [],
+                                  **kwargs) -> str:
+
+        success = False
+        error_msg = ""
+        rsp=""
+        while not success:
+            context = self.llm.format_msg(memory
+                                          + [Message(content=structural_prompt, role="user")]
+                                          + working_memory
+                                          + [Message(content=error_msg, role="user")])
+            try:
+                if use_reflection:
+                    code = await self._debug_with_reflection(context=context, working_memory=working_memory)
+                else:
+                    rsp = await self.llm.aask(context, system_msgs=[system_msg], **kwargs)
+                    json_dict = json.loads(CodeParser.parse_code(text=rsp, lang="json"), strict=False)
+                    code = "".join(json_dict['source'])
+                success = True
+            except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
+                error_msg = rsp+"\nError: Failed to parse JSON! Make sure to use the correct format!"
+        return code
+
+
+
+    async def write_code(
+            self,
+            user_requirement: str,
+            plan_status: str = "",
+            tool_info: str = "",
+            working_memory: list[Message] = None,
+            use_reflection: bool = False,
+            nb_state: str = "",
+            memory: list[Message] = None,
+            **kwargs) -> str:
+
+        working_memory = working_memory or []
+        memory = memory or []
+
+        # generate code
+        structural_prompt = CODE_STRUCTURAL_PROMPT.format(
+            user_requirement=user_requirement,
+            plan_status=plan_status,
+            tool_info=tool_info,
+            nb_state=nb_state
+            )
+
+        return await self._ask_and_parse_json(structural_prompt, CODE_SYSTEM_MSG,working_memory, use_reflection,
+                                              memory, **kwargs)
+
+
+    async def write_markdown(
+            self,
+            user_requirement: str,
+            plan_status: str = "",
+            working_memory: list[Message] = None,
+            use_reflection: bool = False,
+            nb_state: str = "",
+            memory: list[Message] = None,
+            **kwargs) -> str:
         working_memory = working_memory or []
         memory = memory or []
 
         # generate markdown explanation
-        structual_prompt = EXPLANATION_STRUCTUAL_PROMPT.format(
+        structural_prompt = EXPLANATION_STRUCTURAL_PROMPT.format(
             user_requirement=user_requirement,
             plan_status=plan_status.split('## Task Guidance')[0], #revome code-related task guidance
             nb_state=nb_state
         )
 
 
-        # LLM call
-        success = False
-        error_msg = ""
-        while not success:
-            context = self.llm.format_msg(memory
-                +[Message(content=structual_prompt, role="user")] 
-                +working_memory
-                +[Message(content=error_msg, role="user")])
-            rsp = await self.llm.aask(context, system_msgs=[EXPLANATION_SYSTEM_MSG], **kwargs)
-            try:
-                explanation = CodeParser.parse_code(text=rsp, lang="markdown")
-                success = True
-            except ParsingErrorException:
-                error_msg = "Error: No markdown block found. Encapsulate your explanation in a markdown block."
-                pass
-
-        # generate code
-        structual_prompt = CODE_STRUCTUAL_PROMPT.format(
-            user_requirement=user_requirement,
-            plan_status=plan_status,
-            tool_info=tool_info,
-            explanation=explanation,
-            nb_state=nb_state
-            )
-
-        context = self.llm.format_msg(memory + [Message(content=structual_prompt, role="user")] + working_memory)
-
-        # LLM call
-        if use_reflection:
-            code = await self._debug_with_reflection(context=context, working_memory=working_memory)
-        else:
-            rsp = await self.llm.aask(context, system_msgs=[CODE_SYSTEM_MSG], **kwargs)
-            code = CodeParser.parse_code(text=rsp, lang="python")
-
-        return code, explanation
-
-
+        return await self._ask_and_parse_json(structural_prompt, EXPLANATION_SYSTEM_MSG, working_memory, use_reflection,
+                                              memory, **kwargs)
+    
+    
     async def write_title(
             self,
             plan_contex: str = "",
             **kwargs,
-    ) -> tuple[str, str]:
-        # generate markdown explanation
-        system_msg = TITLE_SYSTEM_MSG.format(
-            plan_contex=plan_contex.split('## Current Task')[0]  # remove irrelevant information
-        )
+    ) -> str:
+        # generate markdown title
+        structural_prompt = TITLE_STRUCTURAL_PROMPT.format(
+            plan_contex=plan_contex.split('## Current Task')[0]) # remove irrelevant information
 
-        # LLM call
-        success = False
-        error_msg = ""
-        while not success:
-            rsp = await self.llm.aask(error_msg, system_msgs=[system_msg], **kwargs)
-            try:
-                title = CodeParser.parse_code(text=rsp, lang="markdown")
-                success = True
-            except ParsingErrorException:
-                error_msg = "Error: No markdown block found. Encapsulate your explanation in a markdown block."
-                pass
-                
-        return title
+        return await self._ask_and_parse_json(structural_prompt , TITLE_SYSTEM_MSG, **kwargs)
