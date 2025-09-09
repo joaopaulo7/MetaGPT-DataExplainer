@@ -70,6 +70,7 @@ If you want to use shell commands such as git clone, pip install packages, navig
 - Ensure the output new code is executable in the same Jupyter notebook.
 - Always prioritize using pre-defined tools for the same functionality.
 - For tasks that don't require execution, such as summaries, output an empty source.
+- NEVER generate a markdown cell.
 
 # Output
 Always output one and only one code cell in your response.
@@ -82,6 +83,14 @@ Output code in the following format:
 "<second_line>\\n",
 "<last_line>"
 ]
+}
+```
+
+if no python code is required:
+```json
+{
+"cell_type": "code",
+"source": []
 }
 ```
 """
