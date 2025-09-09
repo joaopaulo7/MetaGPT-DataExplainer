@@ -29,14 +29,15 @@ You are given the following:
 - Plan Status, which is the process you are following to achieve said goal;
 - Notebook State, which is how the jupyter notebook currently is.
 
-Currently, you must write a markdown cell to explain the current step in the process.
-If code is needed, explain, in text, the process you will employ to complete the task.
-If no code is needed, complete the task in your output.
-Write in a didactic manner.
-If you are faced with an error, describe only **HOW** to correct it.
+Currently, you must write a new markdown cell for the provided jupyter notebook.
+Provide both an overview of the previous execution and explanation of current step in the process
+If execution is needed, explain, in text, the process you will employ to complete the task.
+If no execution is needed, complete the task using a markdown cell.
+Write in a didactic manner. If you are faced with an error, describe only how to correct it.
 
 # Constraints
 - Ensure your response is self-contained within the provided notebook.
+- **Avoid** using code blocks
 
 # Output
 You must use the following output format, ensuring every source line except the last ends with a newline character:
@@ -60,15 +61,15 @@ You are given the following:
 - Plan Status, which is the process you are following to achieve said goal;
 - Notebook State, which is how the jupyter notebook currently is.
 
-Currently, you must write the code to complete the current task and ONLY the current task.
-If it does, take the current Notebook State as a guide. 
+Currently, you must write a new code cell for the provided jupyter notebook, aiming to complete the current task and ONLY the current task.
+Take the current Notebook State and the last markdown cell as a guide. 
 Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
-If you want to use shell commands such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in a notebook block.
+If you want to use shell commands such as git clone, pip install packages, navigate folders, read file, etc., use Terminal tool if available. DON'T use ! in a notebook cell.
 
 # Constraints
 - Ensure the output new code is executable in the same Jupyter notebook.
 - Always prioritize using pre-defined tools for the same functionality.
-- For tasks that don't require code, such as summaries, output an empty source.
+- For tasks that don't require execution, such as summaries, output an empty source.
 
 # Output
 While some concise thoughts are helpful, code is absolutely required.

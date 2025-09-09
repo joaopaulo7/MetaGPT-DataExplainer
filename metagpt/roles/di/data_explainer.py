@@ -131,7 +131,6 @@ class DataExplainer(DataInterpreter):
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
             self._add_to_nb(source=code, cell_type="code", outputs=outputs)
-            print(self._get_nb_state())
 
             counter += 1
             sleep(2)
