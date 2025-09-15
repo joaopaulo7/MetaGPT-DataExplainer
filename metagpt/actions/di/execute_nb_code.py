@@ -74,7 +74,7 @@ class ExecuteNbCode(Action):
     nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
-    timeout: int = 600
+    timeout: int = 1800
 
     def __init__(self, nb=nbformat.v4.new_notebook(), timeout=600):
         super().__init__(
@@ -223,7 +223,7 @@ class ExecuteNbCode(Action):
         except NameError:
             return False
 
-    async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, dict]:
+    async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, list]:
         """set timeout for run code.
         returns the success or failure of the cell execution, and an optional error message.
         """
@@ -240,10 +240,10 @@ class ExecuteNbCode(Action):
             await self.nb_client.km.interrupt_kernel()
             await asyncio.sleep(1)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
-            return False, {"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}
+            return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
         except DeadKernelError:
             await self.reset()
-            return False, {"output_type": "error", "ename": "DeadKernelError", "evalue": error_msg, 'traceback': [""]}
+            return False, [{"output_type": "error", "ename": "DeadKernelError", "evalue": error_msg, 'traceback': [""]}]
         except Exception:
             return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 

@@ -65,7 +65,7 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
-    def _add_to_nb(self, source: str, cell_type: str, outputs: dict = None):
+    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
         new_cell = {
             'cell_type': cell_type,
             'source': source.splitlines(keepends=True)
