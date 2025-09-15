@@ -36,7 +36,7 @@ class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
     nb_state: dict = {"cells": []}
-    max_tasks: int = 7
+    max_tasks: int = 16
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
@@ -58,7 +58,7 @@ class DataExplainer(DataInterpreter):
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
-            self.planner = ExplainerPlanner(goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run)
+            self.planner = ExplainerPlanner(goal=self.goal, max_tasks=self.max_tasks, working_memory=self.rc.working_memory, auto_run=auto_run)
 
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""

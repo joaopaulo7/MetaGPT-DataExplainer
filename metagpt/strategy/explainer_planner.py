@@ -24,7 +24,7 @@ TASK_FORMAT= """
 
 class ExplainerPlanner(Planner):
 
-    max_tasks: int = 7
+    max_tasks: int = 16
 
     async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 3):
         if max_tasks is None:
