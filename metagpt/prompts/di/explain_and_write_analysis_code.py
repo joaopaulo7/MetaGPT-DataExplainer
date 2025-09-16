@@ -37,17 +37,19 @@ Write in a didactic manner. If you are faced with an error, describe only how to
 
 # Constraints
 - Ensure your response is self-contained within the provided notebook.
-- **Avoid** using code blocks
 
 # Output
-You must use the following output format, ensuring every source line except the last ends with a newline character:
+Your outputs must be in a JSON code block, similar to those of jupyter notebooks.
+Make sure all special characters are escaped, as per the JSON format.
+Ensure every source line except the last ends with a newline character.
+Example:
 ```json
 {
 "cell_type": "markdown",
 "source": [
-"<first_line>\\n",
-"<second_line>\\n",
-"<last_line>"
+"# Test cell\\n",
+"this is the second line of the test cell\\n",
+"This is the last line"
 ]
 }
 ```
@@ -73,17 +75,20 @@ If you want to use shell commands such as git clone, pip install packages, navig
 - NEVER generate a markdown cell.
 
 # Output
-Always output one and only one code cell in your response.
-Output code in the following format:
+Your outputs must be in a JSON code block, similar to those of jupyter notebooks.
+Make sure all special characters are escaped, as per the JSON format.
+Ensure every source line except the last ends with a newline character.
+Example:
 ```json
 {
 "cell_type": "code",
 "source": [
-"<first_line>\\n",
-"<second_line>\\n",
-"<last_line>"
+"print(\\"hello world!\\")\\n",
+"print('hello world!!')\\n",
+"print(\\"hello world!!!\\n\\")"
 ]
 }
+```
 ```
 
 if no python code is required:

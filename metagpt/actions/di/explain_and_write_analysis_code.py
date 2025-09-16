@@ -49,9 +49,10 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                                   **kwargs) -> str:
 
         success = False
+        tries = 0
         error_msg = ""
         rsp=""
-        while not success:
+        while not success and tries < 3:
             context = self.llm.format_msg(memory
                                           + [Message(content=structural_prompt, role="user")]
                                           + working_memory
@@ -66,7 +67,11 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                 success = True
             except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
                 error_msg = rsp+"\nError: Failed to parse JSON! Make sure to use the correct format!"
-        return code
+
+        if tries < 3:
+            return code
+        else:
+            raise json.decoder.JSONDecodeError(error_msg)
 
 
 
