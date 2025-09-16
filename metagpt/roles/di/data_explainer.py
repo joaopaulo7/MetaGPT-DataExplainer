@@ -114,7 +114,7 @@ class DataExplainer(DataInterpreter):
             tool_info = ""
 
         # data info
-        await self._check_data()
+        #await self._check_data()
 
         # if notebook is empty, write a title cell
         if not self.execute_code.nb.cells:
