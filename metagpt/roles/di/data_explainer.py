@@ -37,6 +37,7 @@ class DataExplainer(DataInterpreter):
     profile: str = "DataExplainer"
     nb_state: dict = {"cells": []}
     max_tasks: int = 16
+    max_nb_tokens: int = 28000
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
@@ -65,6 +66,14 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
+
+    def _get_nb_state(self):
+        return json.dumps(self.nb_state, ensure_ascii=False)
+
+    def _truncate_nb(self):
+        while len(self._get_nb_state()) < self.max_nb_tokens*4:
+            self.nb_state.pop(0)
+
     def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
         new_cell = {
             'cell_type': cell_type,
@@ -89,12 +98,10 @@ class DataExplainer(DataInterpreter):
                         'output_type': "error",
                         'ename': output['ename'],
                         'evalue': output['evalue'],
-                        'traceback': output['traceback'][:4] + output['traceback'][-3:]}) # ignore traceback middle (less important)
+                        'traceback': output['traceback'][-1:]}) # only get the most important part
 
         self.nb_state['cells'].append(new_cell)
-
-    def _get_nb_state(self):
-        return json.dumps(self.nb_state, indent=4)
+        self._truncate_nb()
 
     async def _write_and_exec_code(self, max_retry: int = 3):
         counter = 0
