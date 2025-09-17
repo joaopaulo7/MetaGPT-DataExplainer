@@ -72,7 +72,7 @@ class DataExplainer(DataInterpreter):
 
     def _truncate_nb(self):
         while len(self._get_nb_state()) > self.max_nb_tokens*4:
-            self.nb_state.pop(0)
+            self.nb_state['cells'].pop(0)
 
     def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
         new_cell = {
