@@ -100,7 +100,7 @@ class DataExplainer(DataInterpreter):
                         'output_type': "error",
                         'ename': output['ename'],
                         'evalue': output['evalue'],
-                        'traceback': output['traceback'][-1:]}) # only get the most important part
+                        'traceback': output['traceback'][:2] + output['traceback'][-1:]}) # only get the most important part
 
         self.nb_state['cells'].append(new_cell)
         self._truncate_nb()
