@@ -71,7 +71,7 @@ class DataExplainer(DataInterpreter):
         return json.dumps(self.nb_state, ensure_ascii=False)
 
     def _truncate_nb(self):
-        while len(self._get_nb_state()) < self.max_nb_tokens*4:
+        while len(self._get_nb_state()) > self.max_nb_tokens*4:
             self.nb_state.pop(0)
 
     def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
