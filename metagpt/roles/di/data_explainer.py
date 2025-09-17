@@ -84,6 +84,8 @@ class DataExplainer(DataInterpreter):
             new_cell['outputs'] = []
             for output in outputs:
                 if output['output_type'] == "stream":
+                    if "WARNING:" in output['text']:
+                        continue
                     new_cell['outputs'].append({
                         'output_type': "stream",
                         'text': output['text']})
