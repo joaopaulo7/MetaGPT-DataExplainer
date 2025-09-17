@@ -74,7 +74,7 @@ class ExecuteNbCode(Action):
     nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
-    timeout: int = 1800
+    timeout: int = 3600
 
     def __init__(self, nb=nbformat.v4.new_notebook(), timeout=600):
         super().__init__(
