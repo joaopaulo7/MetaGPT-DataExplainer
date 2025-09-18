@@ -23,6 +23,12 @@ from metagpt.prompts.di.explain_and_write_analysis_code import (
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, ParsingErrorException
 
+CORRECTION_PROMPT = """
+\n\nError: Failed to parse JSON! Make sure to use the correct format!
+Escape characters correctly and make sure to encapsulate all code in a list of strings.
+Reason at to where the mistake might be
+"""
+
 
 class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
     async def _debug_with_reflection(self, context: list[Message], working_memory: list[Message]):
@@ -49,13 +55,13 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
 
         success = False
         tries = 0
-        error_msg = ""
+        error_msg = []
         rsp=""
         while not success and tries < 3:
             context = self.llm.format_msg(memory
                                           + [Message(content=structural_prompt, role="user")]
                                           + working_memory
-                                          + [Message(content=error_msg, role="user")])
+                                          + error_msg)
             try:
                 if use_reflection:
                     code = await self._debug_with_reflection(context=context, working_memory=working_memory)
@@ -65,7 +71,8 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                     code = "".join(json_dict['source'])
                 success = True
             except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
-                error_msg = "\nError: Failed to parse JSON! Make sure to use the correct format! Escape characters correctly and make sure to encapsulate all code in a list of strings."
+                error_msg.append(Message(content=rsp, role="assistant"))
+                error_msg.append(Message(content=CORRECTION_PROMPT, role="user"))
 
         if tries < 3:
             return code

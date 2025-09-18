@@ -40,9 +40,10 @@ Write in a didactic manner. If you are faced with an error, describe how to corr
 - Ensure your response is self-contained within the provided notebook.
 
 # Output
-Your outputs must be in a JSON code block, similar to those of jupyter notebooks.
+Your outputs must contain a JSON code block, similar to those of jupyter notebooks.
 Make sure all special characters are escaped, as per the JSON format.
 Ensure every source line except the last ends with a newline character.
+You can and should add some reasoning before the JSON code block.
 Example:
 ```json
 {
@@ -76,17 +77,18 @@ If you want to use shell commands such as git clone, pip install packages, navig
 - NEVER generate a markdown cell.
 
 # Output
-Your outputs must be in a JSON code block, similar to those of jupyter notebooks.
+Your outputs must contain a JSON code block, similar to those of jupyter notebooks.
 Make sure all special characters are escaped, as per the JSON format.
 Ensure every source line except the last ends with a newline character.
+You can and should add some reasoning before the JSON code block.
 Example:
 ```json
 {
 "cell_type": "code",
 "source": [
-"print(\\"hello world!\\")\\n",
+"print('hello world!')\\n",
 "print('hello world!!')\\n",
-"print(\\"hello world!!!\\n\\")"
+"print('hello world!!!')"
 ]
 }
 ```
