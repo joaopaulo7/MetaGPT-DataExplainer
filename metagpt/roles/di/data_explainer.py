@@ -123,7 +123,7 @@ class DataExplainer(DataInterpreter):
             tool_info = ""
 
         # data info
-        #await self._check_data()
+        await self._check_data()
 
         # if notebook is empty, write a title cell
         if not self.execute_code.nb.cells:
@@ -152,6 +152,7 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
+        self.working_memory.clear()
         self._add_to_nb(source=markdown, cell_type="markdown")
         self._add_to_nb(source=code, cell_type="code", outputs=outputs)
 
