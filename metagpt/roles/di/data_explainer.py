@@ -156,7 +156,7 @@ class DataExplainer(DataInterpreter):
                     role="assistant", cause_by=cause_by))
 
                 self.working_memory.add(Message(
-                    content="There was an error in the execution. Please correct it.\n\n"
+                    content="There was an error during the execution. Please correct it.\n\n"
                             + json.dumps(self._clean_outputs(outputs), ensure_ascii=False),
                     role="user", cause_by=ExecuteNbCode))
             
