@@ -150,7 +150,7 @@ class DataExplainer(DataInterpreter):
             outputs, success = await self.execute_code.run(code)
             self._add_to_nb(source=code, cell_type="code", outputs=outputs)
             print(json.dumps(self._clean_outputs(outputs), ensure_ascii=False, indent=4))
-            
+
             if not success:
                 self.working_memory.add(Message(
                     content="There was an error during the execution. Please correct it.",
