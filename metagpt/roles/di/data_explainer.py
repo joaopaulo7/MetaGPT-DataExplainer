@@ -98,7 +98,7 @@ class DataExplainer(DataInterpreter):
                         -1:]})  # only get the most important part
         return new_outputs
 
-    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
+    def _create_nb_cell(self, source: str, cell_type: str, outputs: list = None):
         new_cell = {
             'cell_type': cell_type,
             'source': source.splitlines(keepends=True)
@@ -107,7 +107,10 @@ class DataExplainer(DataInterpreter):
         if outputs:
             new_cell['outputs'] = self._clean_outputs(outputs)
 
-        self.nb_state['cells'].append(new_cell)
+        return new_cell
+
+    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
+        self.nb_state['cells'].append(self._create_nb_cell(source, cell_type, outputs))
         self._truncate_nb()
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -140,14 +143,19 @@ class DataExplainer(DataInterpreter):
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
             _, _ = await self.execute_code.run(markdown, language="markdown")
-            self.working_memory.add(Message(content=markdown, role="assistant", cause_by=ExecuteNbCode))
+            self.working_memory.add(Message(
+                content=json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False),
+                role="assistant", cause_by=ExecuteNbCode))
 
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
-            self.working_memory.add(Message(content=json.dumps(self._clean_outputs(outputs),
-                                                               ensure_ascii=False), role="user",cause_by=ExecuteNbCode))
+            self.working_memory.add(Message(
+                content=json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False),
+                role="assistant", cause_by=cause_by))
+            self.working_memory.add(Message(
+                content=json.dumps(self._clean_outputs(outputs),
+                ensure_ascii=False), role="user",cause_by=ExecuteNbCode))
             
             counter += 1
             sleep(2)

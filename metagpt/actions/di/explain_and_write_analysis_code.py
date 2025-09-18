@@ -15,7 +15,6 @@ from metagpt.prompts.di.explain_and_write_analysis_code import (
     TITLE_SYSTEM_MSG,
     EXPLANATION_SYSTEM_MSG,
     CODE_SYSTEM_MSG,
-    TITLE_STRUCTURAL_PROMPT,
     EXPLANATION_STRUCTURAL_PROMPT,
     CODE_STRUCTURAL_PROMPT,
     REFLECTION_PROMPT,
