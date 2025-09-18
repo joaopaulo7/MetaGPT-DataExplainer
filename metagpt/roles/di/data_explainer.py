@@ -74,6 +74,30 @@ class DataExplainer(DataInterpreter):
         while len(self._get_nb_state()) > self.max_nb_tokens*4:
             self.nb_state['cells'].pop(0)
 
+    def _clean_outputs(self, outputs):
+        new_outputs = []
+        for output in outputs:
+            if output['output_type'] == "stream":
+                if "WARNING:" in output['text']:
+                    continue
+                new_outputs.append({
+                    'output_type': "stream",
+                    'text': output['text']})
+
+            elif output['output_type'] == "display_data":
+                new_outputs.append({
+                    'output_type': "display_data",
+                    'data': {'text/plain': "IMAGE"}})
+
+            elif output['output_type'] == "error":
+                new_outputs.append({
+                    'output_type': "error",
+                    'ename': output['ename'],
+                    'evalue': output['evalue'],
+                    'traceback': output['traceback'][:2] + output['traceback'][
+                        -1:]})  # only get the most important part
+        return new_outputs
+
     def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
         new_cell = {
             'cell_type': cell_type,
@@ -81,26 +105,7 @@ class DataExplainer(DataInterpreter):
         }
 
         if outputs:
-            new_cell['outputs'] = []
-            for output in outputs:
-                if output['output_type'] == "stream":
-                    if "WARNING:" in output['text']:
-                        continue
-                    new_cell['outputs'].append({
-                        'output_type': "stream",
-                        'text': output['text']})
-
-                elif output['output_type'] == "display_data":
-                    new_cell['outputs'].append({
-                        'output_type': "display_data",
-                        'data': {'text/plain': "IMAGE"}})
-
-                elif output['output_type'] == "error":
-                    new_cell['outputs'].append({
-                        'output_type': "error",
-                        'ename': output['ename'],
-                        'evalue': output['evalue'],
-                        'traceback': output['traceback'][:2] + output['traceback'][-1:]}) # only get the most important part
+            new_cell['outputs'] = self._clean_outputs(outputs)
 
         self.nb_state['cells'].append(new_cell)
         self._truncate_nb()
@@ -141,7 +146,8 @@ class DataExplainer(DataInterpreter):
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
-            self.working_memory.add(Message(content=json.dumps(outputs, ensure_ascii=False), role="user", cause_by=ExecuteNbCode))
+            self.working_memory.add(Message(content=json.dumps(self._clean_outputs(outputs),
+                                                               ensure_ascii=False), role="user",cause_by=ExecuteNbCode))
             
             counter += 1
             sleep(2)
