@@ -143,20 +143,23 @@ class DataExplainer(DataInterpreter):
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
             _, _ = await self.execute_code.run(markdown, language="markdown")
-            self.working_memory.add(Message(
-                content="```json\n"+json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False)+"\n```",
-                role="assistant", cause_by=ExecuteNbCode))
 
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
             print(json.dumps(self._clean_outputs(outputs), ensure_ascii=False, indent=4))
-            self.working_memory.add(Message(
-                content="```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
-                role="assistant", cause_by=cause_by))
-            self.working_memory.add(Message(
-                content=json.dumps(self._clean_outputs(outputs), ensure_ascii=False),
-                role="user",cause_by=ExecuteNbCode))
+
+            if not success:
+                self.working_memory.add(Message(
+                    content="```json\n" + json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False) + "\n```",
+                    role="assistant", cause_by=ExecuteNbCode))
+                self.working_memory.add(Message(
+                    content="```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
+                    role="assistant", cause_by=cause_by))
+                self.working_memory.add(Message(
+                    content="There was an error in the execution. Please correct it.\n\n"
+                            + json.dumps(self._clean_outputs(outputs), ensure_ascii=False),
+                    role="user", cause_by=ExecuteNbCode))
             
             counter += 1
             sleep(2)
