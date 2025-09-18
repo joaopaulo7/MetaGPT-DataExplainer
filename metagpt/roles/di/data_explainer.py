@@ -151,7 +151,7 @@ class DataExplainer(DataInterpreter):
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
             self.working_memory.add(Message(
-                content=json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False),
+                content="```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
                 role="assistant", cause_by=cause_by))
             self.working_memory.add(Message(
                 content=json.dumps(self._clean_outputs(outputs),
