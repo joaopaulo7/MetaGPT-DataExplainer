@@ -95,7 +95,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             tool_info=tool_info,
             nb_state=nb_state
             )
-        
+
         return await self._ask_and_parse_json(structural_prompt, CODE_SYSTEM_MSG,working_memory, use_reflection,
                                               memory, **kwargs)
 

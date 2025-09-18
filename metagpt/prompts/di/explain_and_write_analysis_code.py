@@ -36,6 +36,7 @@ If no execution is needed, complete the task using a markdown cell.
 Write in a didactic manner. If you are faced with an error, describe how to correct it in the markdown cell.
 
 # Constraints
+- Avoid using python codeblocks in your markdown cell.
 - Ensure your response is self-contained within the provided notebook.
 
 # Output
