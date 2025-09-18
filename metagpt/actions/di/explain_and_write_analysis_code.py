@@ -65,7 +65,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                     code = "".join(json_dict['source'])
                 success = True
             except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
-                error_msg = "\nError: Failed to parse JSON! Make sure to use the correct format!"
+                error_msg = "\nError: Failed to parse JSON! Make sure to use the correct format! Escape characters correctly and make sure to encapsulate all code in a list of strings."
 
         if tries < 3:
             return code
