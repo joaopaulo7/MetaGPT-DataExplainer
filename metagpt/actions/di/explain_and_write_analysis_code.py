@@ -95,7 +95,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             tool_info=tool_info,
             nb_state=nb_state
             )
-
+        print(plan_status)
         return await self._ask_and_parse_json(structural_prompt, CODE_SYSTEM_MSG,working_memory, use_reflection,
                                               memory, **kwargs)
 
@@ -115,7 +115,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         # generate markdown explanation
         structural_prompt = EXPLANATION_STRUCTURAL_PROMPT.format(
             user_requirement=user_requirement,
-            plan_status=plan_status.split('## Task Guidance')[0], #revome code-related task guidance
+            plan_status=plan_status,
             nb_state=nb_state
         )
 
