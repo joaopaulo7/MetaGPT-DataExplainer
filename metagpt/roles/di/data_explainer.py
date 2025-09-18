@@ -135,12 +135,13 @@ class DataExplainer(DataInterpreter):
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
             _, _ = await self.execute_code.run(markdown, language="markdown")
-            self._add_to_nb(source=markdown, cell_type="markdown")
-            
+            self.working_memory.add(Message(content=markdown, role="assistant", cause_by=ExecuteNbCode))
+
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
-            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
+            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            self.working_memory.add(Message(content=json.dumps(outputs, ensure_ascii=False), role="user", cause_by=ExecuteNbCode))
             
             counter += 1
             sleep(2)
@@ -151,6 +152,8 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
+        self._add_to_nb(source=markdown, cell_type="markdown")
+        self._add_to_nb(source=code, cell_type="code", outputs=outputs)
 
         return code, json.dumps(outputs), success
 
