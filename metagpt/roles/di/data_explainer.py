@@ -144,7 +144,7 @@ class DataExplainer(DataInterpreter):
             markdown = await self._write_markdown(plan_status)
             _, _ = await self.execute_code.run(markdown, language="markdown")
             self.working_memory.add(Message(
-                content=json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False),
+                content="```json\n"+json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False)+"\n```",
                 role="assistant", cause_by=ExecuteNbCode))
 
             ### write and run code ###
