@@ -2,8 +2,14 @@ from metagpt.strategy.planner import *
 from typing import Dict
 
 PLAN_STATUS = """
+## Finished Tasks
+{finished_tasks}
+
 ## Current Task
 {current_task}
+
+## Next Tasks
+{next_tasks}
 
 ## Task Guidance
 Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks' and 'Finished Section of Current Task', such as repeated import of packages, reading data, etc.
@@ -51,7 +57,9 @@ class ExplainerPlanner(Planner):
 
         # combine components in a prompt
         prompt = PLAN_STATUS.format(
+            finished_tasks=finished_tasks,
             current_task=current_task,
+            next_tasks=next_tasks,
             guidance=guidance,
         )
         return prompt
