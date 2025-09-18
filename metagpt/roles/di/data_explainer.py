@@ -94,8 +94,8 @@ class DataExplainer(DataInterpreter):
                     'output_type': "error",
                     'ename': output['ename'],
                     'evalue': output['evalue'],
-                    'traceback': output['traceback'][:2] + output['traceback'][
-                        -1:]})  # only get the most important part
+                    'traceback': output['traceback'][:3] + output['traceback'][
+                        -2:]})  # only get the most important part
         return new_outputs
 
     def _create_nb_cell(self, source: str, cell_type: str, outputs: list = None):
@@ -151,11 +151,10 @@ class DataExplainer(DataInterpreter):
 
             if not success:
                 self.working_memory.add(Message(
-                    content="```json\n" + json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False) + "\n```",
-                    role="assistant", cause_by=ExecuteNbCode))
-                self.working_memory.add(Message(
-                    content="```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
+                    content="```json\n" + json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False) + "\n```"
+                        +"```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
                     role="assistant", cause_by=cause_by))
+
                 self.working_memory.add(Message(
                     content="There was an error in the execution. Please correct it.\n\n"
                             + json.dumps(self._clean_outputs(outputs), ensure_ascii=False),
