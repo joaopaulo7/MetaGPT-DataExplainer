@@ -152,9 +152,11 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
+
         self.working_memory.clear()
-        self._add_to_nb(source=markdown, cell_type="markdown")
-        self._add_to_nb(source=code, cell_type="code", outputs=outputs)
+        if success:
+            self._add_to_nb(source=markdown, cell_type="markdown")
+            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
 
         return code, json.dumps(outputs), success
 
