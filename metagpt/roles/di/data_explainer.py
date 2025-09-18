@@ -143,21 +143,17 @@ class DataExplainer(DataInterpreter):
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
             _, _ = await self.execute_code.run(markdown, language="markdown")
+            self._add_to_nb(source=markdown, cell_type="markdown")
 
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
+            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
             print(json.dumps(self._clean_outputs(outputs), ensure_ascii=False, indent=4))
-
+            
             if not success:
                 self.working_memory.add(Message(
-                    content="```json\n" + json.dumps(self._create_nb_cell(markdown, "markdown"), ensure_ascii=False) + "\n```"
-                        +"```json\n"+json.dumps(self._create_nb_cell(code, "code"), ensure_ascii=False)+"\n```",
-                    role="assistant", cause_by=cause_by))
-
-                self.working_memory.add(Message(
-                    content="There was an error during the execution. Please correct it.\n\n"
-                            + json.dumps(self._clean_outputs(outputs), ensure_ascii=False),
+                    content="There was an error during the execution. Please correct it.",
                     role="user", cause_by=ExecuteNbCode))
             
             counter += 1
@@ -169,11 +165,7 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
-
         self.working_memory.clear()
-        if success:
-            self._add_to_nb(source=markdown, cell_type="markdown")
-            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
 
         return code, json.dumps(outputs), success
 
