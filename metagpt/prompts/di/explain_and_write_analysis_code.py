@@ -33,7 +33,7 @@ Currently, you must write a new markdown cell for the provided jupyter notebook.
 Provide both a brief overview of the previous execution and an explanation of current step in the process
 If execution is needed, explain, in text, the process you will employ to complete the task.
 If no execution is needed, complete the task using a markdown cell.
-Write in a didactic manner. If you are faced with an error, describe how to correct it in the markdown cell.
+Write in a didactic manner. If there was an error in the previous execution, describe how to correct it in the markdown cell.
 
 # Constraints
 - Avoid using python codeblocks in your markdown cell.
