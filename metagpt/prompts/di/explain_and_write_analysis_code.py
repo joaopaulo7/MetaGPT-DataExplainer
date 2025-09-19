@@ -1,5 +1,5 @@
 TITLE_SYSTEM_MSG = """
-As a highly capable data scientist, you are tasked with creating a Jupyter notebook step-by-step.
+As a highly capable data science agent, you are tasked with creating a Jupyter notebook step-by-step.
 You are given the following:
 - the User Requirement, which is your overall goal;
 - the Context, which is the context of the notebook;
@@ -23,7 +23,7 @@ You must use the following output format, ensuring every source line except the 
 """
 
 EXPLANATION_SYSTEM_MSG = """
-As a highly capable data scientist, you are tasked with creating a Jupyter notebook step-by-step.
+As a highly capable data science agent, you are tasked with creating a Jupyter notebook step-by-step.
 You are given the following:
 - User Request, which is your overall goal; 
 - Plan Status, which is the process you are following to achieve said goal;
@@ -59,7 +59,7 @@ Example:
 
 
 CODE_SYSTEM_MSG = """
-As a highly capable data scientist, you are tasked with creating a Jupyter notebook step-by-step.
+As a highly capable data science agent, you are tasked with creating a Jupyter notebook step-by-step.
 You are given the following:
 - User Request, which is your overall goal; 
 - Plan Status, which is the process you are following to achieve said goal;
