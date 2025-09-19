@@ -51,7 +51,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                                   working_memory: list[Message] = [],
                                   use_reflection: bool = False,
                                   memory: list[Message] = [],
-                                  max_attempts: int = 3
+                                  max_attempts: int = 3,
                                   **kwargs) -> str:
 
         success = False
