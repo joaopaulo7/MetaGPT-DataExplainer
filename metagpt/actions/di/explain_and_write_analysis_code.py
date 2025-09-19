@@ -74,11 +74,10 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
                 error_msg.append(Message(content=rsp, role="assistant"))
                 error_msg.append(Message(content=CORRECTION_PROMPT, role="user"))
+                if tries >= 3:
+                    raise error
 
-        if tries < 3:
-            return code
-        else:
-            raise json.decoder.JSONDecodeError(error_msg)
+        return code
 
 
 
