@@ -15,6 +15,7 @@ from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.strategy.explainer_planner import ExplainerPlanner
 
 from time import sleep
+import re
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -30,6 +31,50 @@ Output a json following the format:
 }}
 ```
 """
+
+
+def _remove_ansi_colors(text):
+    """
+    Removes ANSI escape sequences (color codes) from a string.
+    """
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
+
+def _clean_outputs(outputs):
+    new_outputs = []
+    for output in outputs:
+        if output['output_type'] == "stream":
+            if "WARNING:" in output['text']:
+                continue
+            new_outputs.append({
+                'output_type': "stream",
+                'text': output['text']})
+
+        elif output['output_type'] == "display_data":
+            new_outputs.append({
+                'output_type': "display_data",
+                'data': {'text/plain': "IMAGE"}})
+
+        elif output['output_type'] == "error":
+            new_outputs.append({
+                'output_type': "error",
+                'ename': output['ename'],
+                'evalue': _remove_ansi_colors(output['evalue']),
+                'traceback': _remove_ansi_colors(output['traceback'][:3]
+                                                 + output['traceback'][-2:])})  # only get the most important part
+    return new_outputs
+
+
+def _create_nb_cell(source: str, cell_type: str, outputs: list = None):
+    new_cell = {
+        'cell_type': cell_type,
+        'source': source.splitlines(keepends=True)
+    }
+
+    if outputs:
+        new_cell['outputs'] = _clean_outputs(outputs)
+
+    return new_cell
 
 
 class DataExplainer(DataInterpreter):
@@ -74,43 +119,8 @@ class DataExplainer(DataInterpreter):
         while len(self._get_nb_state()) > self.max_nb_tokens*4:
             self.nb_state['cells'].pop(0)
 
-    def _clean_outputs(self, outputs):
-        new_outputs = []
-        for output in outputs:
-            if output['output_type'] == "stream":
-                if "WARNING:" in output['text']:
-                    continue
-                new_outputs.append({
-                    'output_type': "stream",
-                    'text': output['text']})
-
-            elif output['output_type'] == "display_data":
-                new_outputs.append({
-                    'output_type': "display_data",
-                    'data': {'text/plain': "IMAGE"}})
-
-            elif output['output_type'] == "error":
-                new_outputs.append({
-                    'output_type': "error",
-                    'ename': output['ename'],
-                    'evalue': output['evalue'],
-                    'traceback': output['traceback'][:3] + output['traceback'][
-                        -2:]})  # only get the most important part
-        return new_outputs
-
-    def _create_nb_cell(self, source: str, cell_type: str, outputs: list = None):
-        new_cell = {
-            'cell_type': cell_type,
-            'source': source.splitlines(keepends=True)
-        }
-
-        if outputs:
-            new_cell['outputs'] = self._clean_outputs(outputs)
-
-        return new_cell
-
     def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
-        self.nb_state['cells'].append(self._create_nb_cell(source, cell_type, outputs))
+        self.nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs))
         self._truncate_nb()
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -149,11 +159,11 @@ class DataExplainer(DataInterpreter):
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
             outputs, success = await self.execute_code.run(code)
             self._add_to_nb(source=code, cell_type="code", outputs=outputs)
-            print(json.dumps(self._clean_outputs(outputs), ensure_ascii=False, indent=4))
+            print(json.dumps(_clean_outputs(outputs), ensure_ascii=False, indent=4))
 
             if not success:
                 self.working_memory.add(Message(
-                    content="There was an error during the execution. Please correct it.",
+                    content="There was an error during the execution of the last cell. Please correct it.",
                     role="user", cause_by=ExecuteNbCode))
             
             counter += 1
