@@ -24,6 +24,13 @@ TASK_FORMAT= """
 
 class ExplainerPlanner(Planner):
 
+    max_tasks: int = 16
+
+    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 3):
+        if max_tasks is None:
+            max_tasks = self.max_tasks
+        await super().update_plan(goal=goal, max_tasks=max_tasks, max_retries=max_retries)
+
     def _get_clean_tasks(self) -> (str, str, str):
         cleaned_finished = []
         cleaned_current = "None"
