@@ -77,7 +77,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                 error_msg.append(Message(content=CORRECTION_PROMPT, role="user"))
 
         # if it didn't make it, just returns the response
-        if tries >= max_attempts:
+        if not success:
             return rsp
         else:
             return code
