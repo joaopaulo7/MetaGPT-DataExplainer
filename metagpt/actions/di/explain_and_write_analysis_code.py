@@ -51,13 +51,14 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                                   working_memory: list[Message] = [],
                                   use_reflection: bool = False,
                                   memory: list[Message] = [],
+                                  max_attempts: int = 3
                                   **kwargs) -> str:
 
         success = False
         tries = 0
         error_msg = []
         rsp=""
-        while not success and tries < 3:
+        while not success and tries < max_attempts:
             tries += 1
             context = self.llm.format_msg(memory
                                           + [Message(content=structural_prompt, role="user")]
@@ -74,10 +75,12 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
                 error_msg.append(Message(content=rsp, role="assistant"))
                 error_msg.append(Message(content=CORRECTION_PROMPT, role="user"))
-                if tries >= 3:
-                    raise error
 
-        return code
+        # if it didn't make it, just returns the response
+        if tries >= max_attempts:
+            return rsp
+        else:
+            return code
 
 
 
