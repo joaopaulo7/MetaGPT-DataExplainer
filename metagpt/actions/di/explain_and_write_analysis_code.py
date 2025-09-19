@@ -58,6 +58,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
         error_msg = []
         rsp=""
         while not success and tries < 3:
+            tries += 1
             context = self.llm.format_msg(memory
                                           + [Message(content=structural_prompt, role="user")]
                                           + working_memory
