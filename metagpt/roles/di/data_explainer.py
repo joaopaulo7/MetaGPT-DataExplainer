@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal, Tuple
 
 from pydantic import Field, model_validator
 
@@ -14,7 +15,7 @@ from metagpt.schema import Message
 from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.strategy.explainer_planner import ExplainerPlanner
 
-from time import sleep
+from time import sleep, gmtime, time, strftime
 import re
 
 REACT_THINK_PROMPT = """
@@ -147,18 +148,18 @@ class DataExplainer(DataInterpreter):
         # if notebook is empty, write a title cell
         if not self.execute_code.nb.cells:
             title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
-            _, _, duration = await self.execute_code.run(title, language="markdown")
+            _, _, duration = await self._run_code(title, language="markdown")
             self._add_to_nb(source=title, cell_type="markdown", duration=duration)
 
         while not success and counter < max_retry:
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
-            _, _, duration = await self.execute_code.run(markdown, language="markdown")
+            _, _, duration = await self._run_code(markdown, language="markdown")
             self._add_to_nb(source=markdown, cell_type="markdown", duration=duration)
 
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
-            outputs, success, duration = await self.execute_code.run(code)
+            outputs, success, duration = await self._run_code(code)
             self._add_to_nb(source=code, cell_type="code", outputs=outputs, duration=duration)
             print(json.dumps(_clean_outputs(outputs), ensure_ascii=False, indent=4))
 
@@ -234,3 +235,11 @@ class DataExplainer(DataInterpreter):
         )
 
         return title
+
+    async def _run_code(self,
+                        code: str,
+                        language: Literal["markdown", "python"] = "python"
+                        ) -> Tuple[list, bool, str]:
+        start_time = time()
+        outputs, success = await self.execute_code.run(code, language=language)
+        return outputs, success, strftime("%H:%M:%S", gmtime(time() - start_time))
