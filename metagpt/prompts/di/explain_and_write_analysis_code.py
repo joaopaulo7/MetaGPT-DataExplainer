@@ -40,7 +40,7 @@ Write in a didactic manner. If there was an error in the previous execution, des
 - Ensure your response is self-contained within the provided notebook.
 
 # Output
-Your output **must contain a triple tick JSON code block**, similar to those of jupyter notebooks.
+Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are escaped, as per the JSON format.
 Ensure every source line except the last ends with a newline character.
 You should add your reasoning before the JSON code block.
@@ -77,7 +77,7 @@ If you want to use shell commands such as git clone, pip install packages, navig
 - NEVER generate a markdown cell.
 
 # Output
-Your output **must contain a triple tick JSON code block**, similar to those of jupyter notebooks.
+Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are escaped, as per the JSON format.
 Ensure every source line except the last ends with a newline character.
 You should add your reasoning before the JSON code block.
