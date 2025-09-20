@@ -49,14 +49,14 @@ class WritePlan(Action):
         prompt = PROMPT_TEMPLATE.format(
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
         )
-        success = False
+        parsing_success = False
         error_msg = ""
         tries = 0
-        while not success and tries < 7:
+        while not parsing_success and tries < 7:
             try:
                 rsp = await self._aask(prompt+error_msg)
                 rsp = CodeParser.parse_code(text=rsp)
-                success = True
+                parsing_success = True
                 tries += 1
             except ParsingErrorException as e:
                 error_msg = "Parsing error!! Make sure to use the correct format!"
