@@ -167,7 +167,6 @@ class DataExplainer(DataInterpreter):
                     role="user", cause_by=ExecuteNbCode))
             
             counter += 1
-            sleep(2)
 
             # if not success and counter >= max_retry:
             #     logger.info("coding failed!")
