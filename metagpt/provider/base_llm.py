@@ -205,7 +205,7 @@ class BaseLLM(ABC):
         compressed_message = self.compress_messages(message, compress_type=self.config.compress_type)
         rsp = await self.acompletion_text(compressed_message, stream=stream, timeout=self.get_timeout(timeout))
         # rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
-        return rsp
+        return rsp.split("</think>")[1]
 
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
