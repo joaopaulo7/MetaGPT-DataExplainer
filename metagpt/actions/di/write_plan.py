@@ -10,8 +10,6 @@ import json
 from copy import deepcopy
 from typing import Tuple
 
-from statsmodels.stats.libqsturng.make_tbls import success
-
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan, Task
