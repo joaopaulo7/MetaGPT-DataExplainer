@@ -41,8 +41,8 @@ Write in a didactic manner. If there was an error in the previous execution, des
 
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
-Make sure all special characters are escaped, as per the JSON format.
-Ensure every source line except the last ends with a newline character.
+Make sure all special characters are properly escaped, as per the JSON format.
+Ensure every source string ends with a newline character.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
@@ -51,7 +51,7 @@ Example:
 "source": [
 "# Test cell\\n",
 "this is the second line of the test cell\\n",
-"This is the last line"
+"This is the last line\\n"
 ]
 }
 ```
@@ -78,8 +78,8 @@ If you want to use shell commands such as git clone, pip install packages, navig
 
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
-Make sure all special characters are escaped, as per the JSON format.
-Ensure every source line except the last ends with a newline character.
+Make sure all special characters are properly escaped, as per the JSON format.
+Ensure every source string ends with a newline character.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
@@ -88,7 +88,7 @@ Example:
 "source": [
 "print('hello world!')\\n",
 "print('hello world!!')\\n",
-"print('hello world!!!')"
+"print('hello world!!!')\\n"
 ]
 }
 ```
