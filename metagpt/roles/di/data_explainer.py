@@ -65,10 +65,11 @@ def _clean_outputs(outputs):
     return new_outputs
 
 
-def _create_nb_cell(source: str, cell_type: str, outputs: list = None):
+def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
     new_cell = {
         'cell_type': cell_type,
-        'source': source.splitlines(keepends=True)
+        'source': source.splitlines(keepends=True),
+        'running_duration': duration
     }
 
     if outputs:
@@ -119,8 +120,8 @@ class DataExplainer(DataInterpreter):
         while len(self._get_nb_state()) > self.max_nb_tokens*4:
             self.nb_state['cells'].pop(0)
 
-    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None):
-        self.nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs))
+    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
+        self.nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs, duration))
         self._truncate_nb()
 
     async def _write_and_exec_code(self, max_retry: int = 5):
@@ -146,19 +147,19 @@ class DataExplainer(DataInterpreter):
         # if notebook is empty, write a title cell
         if not self.execute_code.nb.cells:
             title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
-            _, _ = await self.execute_code.run(title, language="markdown")
-            self._add_to_nb(source=title, cell_type="markdown")
+            _, _, duration = await self.execute_code.run(title, language="markdown")
+            self._add_to_nb(source=title, cell_type="markdown", duration=duration)
 
         while not success and counter < max_retry:
             ### write and run explanation ###
             markdown = await self._write_markdown(plan_status)
-            _, _ = await self.execute_code.run(markdown, language="markdown")
-            self._add_to_nb(source=markdown, cell_type="markdown")
+            _, _, duration = await self.execute_code.run(markdown, language="markdown")
+            self._add_to_nb(source=markdown, cell_type="markdown", duration=duration)
 
             ### write and run code ###
             code, cause_by = await self._write_code(counter, plan_status, tool_info)
-            outputs, success = await self.execute_code.run(code)
-            self._add_to_nb(source=code, cell_type="code", outputs=outputs)
+            outputs, success, duration = await self.execute_code.run(code)
+            self._add_to_nb(source=code, cell_type="code", outputs=outputs, duration=duration)
             print(json.dumps(_clean_outputs(outputs), ensure_ascii=False, indent=4))
 
             if not success:

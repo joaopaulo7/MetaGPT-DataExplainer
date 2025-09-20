@@ -26,7 +26,7 @@ from metagpt.utils.common import CodeParser, ParsingErrorException
 CORRECTION_PROMPT = """
 \n\nError: Failed to parse JSON! Make sure to use the correct format!
 Escape characters correctly and make sure to encapsulate all code in a list of strings.
-Reason at to where the mistake might be
+Reason as to where the mistake might be.
 """
 
 
@@ -72,9 +72,9 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                     json_dict = json.loads(CodeParser.parse_code(text=rsp, lang="json"), strict=False)
                     code = "".join(json_dict['source'])
                 success = True
-            except (ParsingErrorException, json.decoder.JSONDecodeError) as error:
+            except (ParsingErrorException, json.decoder.JSONDecodeError) as e:
                 error_msg.append(Message(content=rsp, role="assistant"))
-                error_msg.append(Message(content=CORRECTION_PROMPT, role="user"))
+                error_msg.append(Message(content=f"{CORRECTION_PROMPT}\n{str(e)}", role="user"))
 
         # if it didn't make it, just returns the response
         if not success:

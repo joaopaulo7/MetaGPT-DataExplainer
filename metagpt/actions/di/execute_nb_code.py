@@ -10,6 +10,7 @@ import asyncio
 import base64
 import re
 from typing import Literal, Tuple
+from time import time, gmtime, strftime
 
 import nbformat
 from django.contrib.messages.api import success
@@ -227,6 +228,7 @@ class ExecuteNbCode(Action):
         """set timeout for run code.
         returns the success or failure of the cell execution, and an optional error message.
         """
+
         await self.reporter.async_report(cell, "content")
 
         try:
@@ -247,11 +249,12 @@ class ExecuteNbCode(Action):
         except Exception:
             return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 
-    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[dict, bool]:
+    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[dict, bool, str]:
         """
         return the output of code execution, and a success indicator (bool) of code execution.
         """
         self._display(code, language)
+        start_time = time()
 
         async with self.reporter:
             if language == "python":
@@ -283,7 +286,7 @@ class ExecuteNbCode(Action):
             nbformat.write(self.nb, file_path)
             await self.reporter.async_report(file_path, "path")
 
-            return outputs, success
+            return outputs, success, strftime("%H:%M:%S", gmtime(time()-start_time))
 
 
 def remove_log_and_warning_lines(input_str: str) -> str:
