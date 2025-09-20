@@ -9,14 +9,14 @@ Currently, you must write a markdown title and an introduction cell to the noteb
 Write in a clear and informative manner.
 
 # Output
-You must use the following output format, ensuring every source line except the last ends with a newline character:
+You must use the following output format, ensuring every source string ends with a newline character:
 ```json
 {
 "cell_type": "markdown",
 "source": [
 "<first_line>\\n",
 "<second_line>\\n",
-"<last_line>"
+"<last_line>\n"
 ]
 }
 ```
