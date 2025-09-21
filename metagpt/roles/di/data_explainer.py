@@ -125,7 +125,7 @@ class DataExplainer(DataInterpreter):
         self.nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs, duration))
         self._truncate_nb()
 
-    async def _write_and_exec_code(self, max_retry: int = 5):
+    async def _write_and_exec_code(self, max_retry: int = 3):
         counter = 0
         success = False
 
