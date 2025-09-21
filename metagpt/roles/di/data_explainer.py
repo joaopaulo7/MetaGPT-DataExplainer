@@ -70,7 +70,7 @@ def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration:
     new_cell = {
         'cell_type': cell_type,
         'source': source.splitlines(keepends=True),
-        'execution_duration': duration
+        'execution_time': duration
     }
 
     if outputs:
