@@ -242,9 +242,9 @@ class ExecuteNbCode(Action):
             await asyncio.sleep(1)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
             return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
-        except DeadKernelError:
+        except DeadKernelError as e:
             await self.reset()
-            return False, [{"output_type": "error", "ename": "DeadKernelError", "evalue": error_msg, 'traceback': [""]}]
+            return False, [{"output_type": "error", "ename": "DeadKernelError", "evalue": str(e), 'traceback': [""]}]
         except Exception:
             return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 
