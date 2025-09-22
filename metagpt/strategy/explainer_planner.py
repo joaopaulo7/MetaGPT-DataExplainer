@@ -94,9 +94,9 @@ class ExplainerPlanner(Planner):
 
     def get_nb_state(self, long_term: bool = False) -> str:
         if long_term:
-            return json.dumps(self.nb_state, ensure_ascii=False)
+            return json.dumps(self.nb_state, indent=0, ensure_ascii=False)
         else:
-            return json.dumps(self.working_nb_state, ensure_ascii=False)
+            return json.dumps(self.working_nb_state, indent=0, ensure_ascii=False)
 
     def _truncate_nb(self, long_term: bool = False) -> None:
         if long_term:
@@ -131,7 +131,7 @@ class ExplainerPlanner(Planner):
 
         plan_confirmed = False
         while not plan_confirmed:
-            context = self.get_context(self.get_nb_state())
+            context = self.get_context()
             context_msg = [Message(content=context, role="user")]
             rsp = await WritePlan().run(context_msg, max_tasks=max_tasks)
             self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
@@ -152,11 +152,11 @@ class ExplainerPlanner(Planner):
         self.working_memory.clear()
 
 
-    def get_context(self, nb_state: str = "") -> str:
+    def get_context(self) -> str:
         context = STRUCTURAL_CONTEXT.format(
             user_request=self.plan.goal,
             current_plan=self.get_plan_status(guidance=False),
-            nb_state=nb_state
+            nb_state=self.get_nb_state()
         )
         return context
 
@@ -168,15 +168,15 @@ class ExplainerPlanner(Planner):
 
         for task in self.plan.tasks:
             if task.task_id == self.plan.current_task_id:
-                cleaned_current = json.dumps(simplified_task(task), indent=4, ensure_ascii=False)
+                cleaned_current = json.dumps(simplified_task(task), indent=0, ensure_ascii=False)
             elif task.is_finished:
                 cleaned_finished.append(simplified_task(task))
             else:
                 cleaned_next.append(simplified_task(task))
 
-        return (json.dumps(cleaned_finished, indent=4, ensure_ascii=False),
+        return (json.dumps(cleaned_finished, indent=0, ensure_ascii=False),
                 cleaned_current,
-                json.dumps(cleaned_next, indent=4, ensure_ascii=False))
+                json.dumps(cleaned_next, indent=0, ensure_ascii=False))
 
 
     def get_plan_status(self, exclude: List[str] = None, guidance: bool = True) -> str:

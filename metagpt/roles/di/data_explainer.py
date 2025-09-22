@@ -116,6 +116,7 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
+        print(self.planner.get_nb_state(True))
         # only adds successes to the long-term nb state.
         if success:
             self.planner.add_to_nb(source=markdown, cell_type="markdown", long_term=True)
