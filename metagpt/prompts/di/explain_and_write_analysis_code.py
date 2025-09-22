@@ -16,7 +16,7 @@ You must use the following output format, ensuring every source string ends with
 "source": [
 "<first_line>\\n",
 "<second_line>\\n",
-"<last_line>\n"
+"<last_line>\\n"
 ]
 }
 ```
