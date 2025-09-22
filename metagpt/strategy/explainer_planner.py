@@ -94,9 +94,9 @@ class ExplainerPlanner(Planner):
 
     def get_nb_state(self, long_term: bool = False) -> str:
         if long_term:
-            return json.dumps(self.nb_state, indent=0, ensure_ascii=False)
+            return json.dumps(self.nb_state, indent=2, ensure_ascii=False)
         else:
-            return json.dumps(self.working_nb_state, indent=0, ensure_ascii=False)
+            return json.dumps(self.working_nb_state, indent=2, ensure_ascii=False)
 
     def _truncate_nb(self, long_term: bool = False) -> None:
         if long_term:
@@ -168,15 +168,15 @@ class ExplainerPlanner(Planner):
 
         for task in self.plan.tasks:
             if task.task_id == self.plan.current_task_id:
-                cleaned_current = json.dumps(simplified_task(task), indent=0, ensure_ascii=False)
+                cleaned_current = json.dumps(simplified_task(task), indent=2, ensure_ascii=False)
             elif task.is_finished:
                 cleaned_finished.append(simplified_task(task))
             else:
                 cleaned_next.append(simplified_task(task))
 
-        return (json.dumps(cleaned_finished, indent=0, ensure_ascii=False),
+        return (json.dumps(cleaned_finished, indent=2, ensure_ascii=False),
                 cleaned_current,
-                json.dumps(cleaned_next, indent=0, ensure_ascii=False))
+                json.dumps(cleaned_next, indent=2, ensure_ascii=False))
 
 
     def get_plan_status(self, exclude: List[str] = None, guidance: bool = True) -> str:

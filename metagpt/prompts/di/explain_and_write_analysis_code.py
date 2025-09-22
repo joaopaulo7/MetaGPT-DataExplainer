@@ -14,9 +14,9 @@ You must use the following output format, ensuring every source line ends with a
 {
 "cell_type": "markdown",
 "source": [
-"## This is a cell\n",
-"A \\\\`markdown\\\\` cell \\n",
-"more sample text\\n"
+"<first_line>\\n",
+"<second_line>\\n",
+"<last_line>\\n"
 ]
 }
 ```
@@ -49,8 +49,8 @@ Example:
 {
 "cell_type": "markdown",
 "source": [
-"# Test cell\\n",
-"this is the second line of the test cell\\n",
+"## Example cell\\n",
+"this is the second line of the example cell\\n",
 "This is the last line\\n"
 ]
 }
@@ -88,7 +88,7 @@ Example:
 "source": [
 "print('hello world!')\\n",
 "print('hello world!!')\\n",
-"print('hello world!!!')\\n"
+"print(\\"hello world!!!\\")\\n"
 ]
 }
 ```
