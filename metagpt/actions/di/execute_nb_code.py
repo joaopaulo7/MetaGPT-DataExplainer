@@ -76,7 +76,7 @@ class ExecuteNbCode(Action):
     interaction: str
     timeout: int = 3600
 
-    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=2400):
+    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=3600):
         super().__init__(
             nb=nb,
             timeout=timeout,
