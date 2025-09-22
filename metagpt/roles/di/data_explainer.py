@@ -86,12 +86,12 @@ class DataExplainer(DataInterpreter):
         if not self.execute_code.nb.cells:
             title = await self._write_title()
             _, _, duration = await self._run_code(title, language="markdown")
-            self.planner.add_to_nb(source=title, cell_type="markdown", duration=duration, long_term=True)
+            self.planner.add_to_nb(source=title, cell_type="markdown", long_term=True)
 
         ### write and run explanation ###
         markdown = await self._write_markdown()
         _, _, duration = await self._run_code(markdown, language="markdown")
-        self.planner.add_to_nb(source=markdown, cell_type="markdown", duration=duration)
+        self.planner.add_to_nb(source=markdown, cell_type="markdown")
 
 
         counter = 0
@@ -118,8 +118,7 @@ class DataExplainer(DataInterpreter):
 
         # only adds successes to the long-term nb state.
         if success:
-            self.planner.add_to_nb(source=markdown, cell_type="markdown", outputs=outputs,
-                                   duration=duration, long_term=True)
+            self.planner.add_to_nb(source=markdown, cell_type="markdown", long_term=True)
             self.planner.add_to_nb(source=code, cell_type="code", outputs=outputs,
                                    duration=duration, long_term=True)
             self.working_memory.clear()
