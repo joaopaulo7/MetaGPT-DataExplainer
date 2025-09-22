@@ -13,10 +13,9 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message
 from metagpt.tools.tool_recommend import BM25ToolRecommender
-from metagpt.strategy.explainer_planner import ExplainerPlanner
+from metagpt.strategy.explainer_planner import ExplainerPlanner, _clean_outputs
 
 from time import sleep, gmtime, time, strftime
-import re
 
 REACT_THINK_PROMPT = """
 # User Requirement
@@ -33,63 +32,16 @@ Output a json following the format:
 ```
 """
 
-
-def _remove_ansi_colors(text):
-    """
-    Removes ANSI escape sequences (color codes) from a string.
-    """
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-    return ansi_escape.sub('', text)
-
-def _clean_outputs(outputs):
-    new_outputs = []
-    for output in outputs:
-        if output['output_type'] == "stream":
-            if "WARNING:" in output['text']:
-                continue
-            new_outputs.append({
-                'output_type': "stream",
-                'text': output['text']})
-
-        elif output['output_type'] == "display_data":
-            new_outputs.append({
-                'output_type': "display_data",
-                'data': {'text/plain': "IMAGE"}})
-
-        elif output['output_type'] == "error":
-            new_outputs.append({
-                'output_type': "error",
-                'ename': output['ename'],
-                'evalue': _remove_ansi_colors(output['evalue']),
-                # only get the most important part
-                'traceback': [_remove_ansi_colors(tb) for tb in output['traceback'][:3] + output['traceback'][-2:]]})
-    return new_outputs
-
-
-def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
-    new_cell = {
-        'cell_type': cell_type,
-        'source': source.splitlines(keepends=True),
-        'execution_time': duration
-    }
-
-    if outputs:
-        new_cell['outputs'] = _clean_outputs(outputs)
-
-    return new_cell
-
-
 class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
-    nb_state: dict = {"cells": []}
-    max_tasks: int = 16
+    max_tasks: int = 12
     max_nb_tokens: int = 28000
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "Explainer":
-        self.planner = ExplainerPlanner(max_tasks=self.max_tasks)
+        self.planner = ExplainerPlanner(max_tasks=self.max_tasks, max_nb_tokens=self.max_nb_tokens)
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
         self.use_plan = (
             self.react_mode == "plan_and_act"
@@ -113,22 +65,7 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
-
-    def _get_nb_state(self):
-        return json.dumps(self.nb_state, ensure_ascii=False)
-
-    def _truncate_nb(self):
-        while len(self._get_nb_state()) > self.max_nb_tokens*4:
-            self.nb_state['cells'].pop(0)
-
-    def _add_to_nb(self, source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
-        self.nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs, duration))
-        self._truncate_nb()
-
     async def _write_and_exec_code(self, max_retry: int = 3):
-        counter = 0
-        success = False
-
         # plan info
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
 
@@ -147,20 +84,23 @@ class DataExplainer(DataInterpreter):
 
         # if notebook is empty, write a title cell
         if not self.execute_code.nb.cells:
-            title = await self._write_title(self.planner.get_useful_memories()[0].content) # get only current plan context
+            title = await self._write_title()
             _, _, duration = await self._run_code(title, language="markdown")
-            self._add_to_nb(source=title, cell_type="markdown", duration=duration)
+            self.planner.add_to_nb(source=title, cell_type="markdown", duration=duration, long_term=True)
 
+        ### write and run explanation ###
+        markdown = await self._write_markdown()
+        _, _, duration = await self._run_code(markdown, language="markdown")
+        self.planner.add_to_nb(source=markdown, cell_type="markdown", duration=duration)
+
+
+        counter = 0
+        success = False
         while not success and counter < max_retry:
-            ### write and run explanation ###
-            markdown = await self._write_markdown(plan_status)
-            _, _, duration = await self._run_code(markdown, language="markdown")
-            self._add_to_nb(source=markdown, cell_type="markdown", duration=duration)
-
             ### write and run code ###
-            code, cause_by = await self._write_code(counter, plan_status, tool_info)
+            code, cause_by = await self._write_code(counter, tool_info)
             outputs, success, duration = await self._run_code(code)
-            self._add_to_nb(source=code, cell_type="code", outputs=outputs, duration=duration)
+            self.planner.add_to_nb(source=code, cell_type="code", outputs=outputs, duration=duration)
             print(json.dumps(_clean_outputs(outputs), ensure_ascii=False, indent=4))
 
             if not success:
@@ -176,65 +116,67 @@ class DataExplainer(DataInterpreter):
             #     if ReviewConst.CHANGE_WORDS[0] in review:
             #         counter = 0  # redo the task again with help of human suggestions
 
-        self.working_memory.clear()
+        # only adds successes to the long-term nb state.
+        if success:
+            self.planner.add_to_nb(source=markdown, cell_type="markdown", outputs=outputs,
+                                   duration=duration, long_term=True)
+            self.planner.add_to_nb(source=code, cell_type="code", outputs=outputs,
+                                   duration=duration, long_term=True)
+            self.working_memory.clear()
 
         return code, json.dumps(outputs), success
+
 
     async def run(self, with_message=None) -> Message | None:
         self.user_requirement = with_message
         await super().run(with_message)
 
 
-    async def _write_markdown(
-        self,
-        plan_status: str = "",
-    ) -> str:
+    async def _write_markdown(self) -> str:
         todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to {todo.name}")
 
         markdown = await todo.write_markdown(
             user_requirement=self.user_requirement,
-            plan_status=plan_status,
+            plan_status=self.planner.get_plan_status(),
             working_memory=self.working_memory.get(),
-            nb_state=self._get_nb_state()
+            nb_state=self.planner.get_nb_state()
         )
 
         return markdown
 
     async def _write_code(
-        self,
-        counter: int,
-        plan_status: str = "",
-        tool_info: str = "",
-    ) -> tuple[str, Action]:
+            self,
+            counter: int,
+            plan_status = None,
+            tool_info: str = "") -> tuple[str, Action]:
+
         todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
         code = await todo.write_code(
             user_requirement=self.user_requirement,
-            plan_status=plan_status,
+            plan_status=self.planner.get_plan_status(),
             tool_info=tool_info,
             working_memory=self.working_memory.get(),
             use_reflection=use_reflection,
-            nb_state=self._get_nb_state()
+            nb_state=self.planner.get_nb_state()
         )
 
         return code, todo
 
 
-    async def _write_title(
-        self,
-        plan_contex: str = ""
-    ) -> str:
+    async def _write_title(self) -> str:
         todo = self.rc.todo  # todo is ExplainAndWriteAnalysisCode
         logger.info(f"ready to write notebook title")
 
         title = await todo.write_title(
-            plan_contex=plan_contex
+            plan_contex=self.planner.get_context()
         )
 
         return title
+
 
     async def _run_code(self,
                         code: str,
