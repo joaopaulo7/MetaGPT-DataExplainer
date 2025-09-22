@@ -14,9 +14,9 @@ You must use the following output format, ensuring every source line ends with a
 {
 "cell_type": "markdown",
 "source": [
-"<first_line>\\n",
-"<second_line>\\n",
-"<last_line>\\n"
+"## This is a cell\n",
+"A \\\\`markdown\\\\` cell \\n",
+"more sample text\\n"
 ]
 }
 ```
