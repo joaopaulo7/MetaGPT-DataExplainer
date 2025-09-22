@@ -94,17 +94,17 @@ class ExplainerPlanner(Planner):
 
     def get_nb_state(self, long_term: bool = False) -> str:
         if long_term:
-            return json.dumps(self.working_nb_state, ensure_ascii=False)
-        else:
             return json.dumps(self.nb_state, ensure_ascii=False)
+        else:
+            return json.dumps(self.working_nb_state, ensure_ascii=False)
 
     def _truncate_nb(self, long_term: bool = False) -> None:
         if long_term:
             while len(self.get_nb_state(long_term)) > self.max_nb_tokens*4:
-                self.working_nb_state['cells'].pop(0)
+                self.nb_state['cells'].pop(0)
         else:
             while len(self.get_nb_state(long_term)) > self.max_nb_tokens*4:
-                self.nb_state['cells'].pop(0)
+                self.working_nb_state['cells'].pop(0)
 
     def add_to_nb(self, source: str,
                   cell_type: str,
