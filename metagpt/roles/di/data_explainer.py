@@ -155,7 +155,6 @@ class DataExplainer(DataInterpreter):
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
-        print(self.planner.get_nb_state())
         code = await todo.write_code(
             user_requirement=self.user_requirement,
             plan_status=self.planner.get_plan_status(),
