@@ -294,8 +294,8 @@ class CodeParser:
         else:
             logger.error(f"{pattern} not match following text:")
             logger.error(text)
-            raise ParsingErrorException(f"no match for langauge {lang}")
-            #return text  # just assume original text is code
+            #raise ParsingErrorException(f"no match for langauge {lang}")
+            return text  # just assume original text is code
         return code
 
     @classmethod

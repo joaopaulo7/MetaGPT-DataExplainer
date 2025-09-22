@@ -9,14 +9,14 @@ Currently, you must write a markdown title and an introduction cell to the noteb
 Write in a clear and informative manner.
 
 # Output
-You must use the following output format, ensuring every source string ends with a newline character:
+You must use the following output format, ensuring every source string but the last ends with a newline character `\\n`:
 ```json
 {
 "cell_type": "markdown",
 "source": [
 "<first_line>\\n",
 "<second_line>\\n",
-"<last_line>\\n"
+"<last_line>"
 ]
 }
 ```
@@ -42,7 +42,7 @@ Write in a didactic manner. If there was an error in the previous execution, des
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are properly escaped, as per the JSON format.
-Ensure every source string ends with a newline character.
+Ensure every source line but the last ends with a newline character ´\\n´ and **never** a `\\\\n`.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
@@ -51,7 +51,7 @@ Example:
 "source": [
 "# Test cell\\n",
 "this is the second line of the test cell\\n",
-"This is the last line\\n"
+"This is the last line"
 ]
 }
 ```
@@ -79,7 +79,7 @@ If you want to use shell commands such as git clone, pip install packages, navig
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are properly escaped, as per the JSON format.
-Ensure every source string ends with a newline character.
+Ensure every source line but the last ends with a newline character ´\\n´ and **never** a `\\\\n`.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
@@ -88,7 +88,7 @@ Example:
 "source": [
 "print('hello world!')\\n",
 "print('hello world!!')\\n",
-"print('hello world!!!')\\n"
+"print('hello world!!!')"
 ]
 }
 ```
