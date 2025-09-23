@@ -244,7 +244,9 @@ class ExecuteNbCode(Action):
             return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
         except DeadKernelError as e:
             await self.reset()
-            return False, [{"output_type": "error", "ename": "DeadKernelError", "evalue": str(e), 'traceback': [""]}]
+            return False, [{"output_type": "error",
+                            "ename": "DeadKernelError! Kernel will be restarted and the memory wiped.",
+                            "evalue": str(e), 'traceback': [""]}]
         except Exception:
             return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 
