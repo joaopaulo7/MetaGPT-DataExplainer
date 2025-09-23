@@ -59,7 +59,7 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
     rsp = json.loads(rsp)
     tasks = [Task(**task_config) for task_config in rsp]
 
-    if len(tasks) == 1 or tasks[0].dependent_task_ids:
+    if len(tasks) == 1:
         if tasks[0].dependent_task_ids and len(tasks) > 1:
             # tasks[0].dependent_task_ids means the generated tasks are not a complete plan
             # for they depend on tasks in the current plan, in this case, we only support updating one task each time
