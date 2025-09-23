@@ -29,6 +29,8 @@ Write code for the incomplete sections of 'Current Task'. And avoid duplicating 
 Specifically, {guidance}
 """
 
+STREAM_CAP = 4096
+
 def simplified_task(task):
     return {
         "task_id": task.task_id,
@@ -54,7 +56,7 @@ def _clean_outputs(outputs):
                 continue
             new_outputs.append({
                 'output_type': "stream",
-                'text': output['text']})
+                'text': output['text'][:STREAM_CAP*4]})
 
         elif output['output_type'] == "display_data":
             new_outputs.append({
