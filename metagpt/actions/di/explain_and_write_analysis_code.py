@@ -26,7 +26,7 @@ from metagpt.utils.common import CodeParser, ParsingErrorException
 CORRECTION_PROMPT = """
 \n\nError: Failed to parse JSON! Make sure to use the correct format!
 Make sure that the whole JSON is in a triple tick code block.
-Reason as to what the mistake might be before attempting again.
+Reason as to what the mistake might be and generate a new JSON code block.
 """
 
 
@@ -51,7 +51,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                                   working_memory: list[Message] = [],
                                   use_reflection: bool = False,
                                   memory: list[Message] = [],
-                                  max_attempts: int = 3,
+                                  max_attempts: int = 5,
                                   **kwargs) -> str:
 
         success = False
