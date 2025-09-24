@@ -24,8 +24,7 @@ PROMPT_TEMPLATE: str = """
 # Task:
 Based on the context, write an in depth plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
 Try to be as granular as possible given the maximum number of tasks allowed.
-If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
-If you encounter errors on the current task, revise and output the current single task only.
+If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
 Output a list of jsons following the format:
 ```json
 [
@@ -78,6 +77,8 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
                 tasks[0].task_id, tasks[0].dependent_task_ids, tasks[0].instruction, tasks[0].assignee
             )
 
+    elif tasks[0].dependent_task_ids:
+        current_plan.add_tasks(tasks, addition=True)
     else:
         # add tasks in general
         current_plan.add_tasks(tasks)

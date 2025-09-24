@@ -521,7 +521,7 @@ class Plan(BaseModel):
 
         return sorted_tasks
 
-    def add_tasks(self, tasks: list[Task]):
+    def add_tasks(self, tasks: list[Task], addition: bool = False):
         """
         Integrates new tasks into the existing plan, ensuring dependency order is maintained.
 
@@ -534,31 +534,35 @@ class Plan(BaseModel):
 
         Args:
             tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
+            addition (bool): If the tasks are an addition to the plan, instead of a whole plan.
 
         Returns:
             None: The method updates the internal state of the plan but does not return anything.
         """
-        if not tasks:
-            return
-
-        # Topologically sort the new tasks to ensure correct dependency order
-        new_tasks = self._topological_sort(tasks)
-
-        if not self.tasks:
-            # If there are no existing tasks, set the new tasks as the current tasks
-            self.tasks = new_tasks
-
+        if addition:
+            self.tasks = self._topological_sort(tasks+self.tasks)
         else:
-            # Find the length of the common prefix between existing and new tasks
-            prefix_length = 0
-            for old_task, new_task in zip(self.tasks, new_tasks):
-                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
-                    break
-                prefix_length += 1
+            if not tasks:
+                return
 
-            # Combine the common prefix with the remainder of the new tasks
-            final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
-            self.tasks = final_tasks
+            # Topologically sort the new tasks to ensure correct dependency order
+            new_tasks = self._topological_sort(tasks)
+
+            if not self.tasks:
+                # If there are no existing tasks, set the new tasks as the current tasks
+                self.tasks = new_tasks
+
+            else:
+                # Find the length of the common prefix between existing and new tasks
+                prefix_length = 0
+                for old_task, new_task in zip(self.tasks, new_tasks):
+                    if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
+                        break
+                    prefix_length += 1
+
+                # Combine the common prefix with the remainder of the new tasks
+                final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
+                self.tasks = final_tasks
 
         # Update current_task_id to the first unfinished task in the merged list
         self._update_current_task()
