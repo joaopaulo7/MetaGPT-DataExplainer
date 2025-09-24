@@ -125,7 +125,7 @@ class ExplainerPlanner(Planner):
             self._truncate_nb(long_term)
 
 
-    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 3):
+    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 5):
         if not max_tasks:
             max_tasks = self.max_tasks
         if goal:
@@ -141,15 +141,16 @@ class ExplainerPlanner(Planner):
             # precheck plan before asking reviews
             is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
             if not is_plan_valid and max_retries > 0:
-                error_msg = f"The generated plan is not valid with error: {error}, try regenerating, remember to generate either the whole plan or the single changed task only"
+                error_msg = f"The generated plan is not valid with error: {error}, try regenerating. Make sure all dependent tasks exist."
                 logger.warning(error_msg)
-                self.working_memory.add(Message(content=error_msg, role="assistant", cause_by=WritePlan))
+                self.working_memory.add(Message(content=error_msg, role="user", cause_by=WritePlan))
                 max_retries -= 1
                 continue
 
             _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
 
-        update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
+        if plan_confirmed:
+            update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
 
         self.working_memory.clear()
 
