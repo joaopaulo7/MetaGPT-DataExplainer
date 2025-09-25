@@ -86,6 +86,8 @@ class DataExplainer(DataInterpreter):
         # plan info
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
 
+        self.planner.reset_working_state()
+
         # tool info
         if self.tool_recommender:
             context = (

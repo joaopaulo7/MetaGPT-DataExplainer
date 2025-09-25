@@ -93,6 +93,10 @@ class ExplainerPlanner(Planner):
     nb_state: dict = {"cells": []}
     working_nb_state: dict = {"cells": []}
 
+
+    def reset_working_state(self):
+        self.working_nb_state = deepcopy(self.nb_state)
+
     def get_nb_state(self, long_term: bool = False) -> str:
         if long_term:
             return json.dumps(self.nb_state, indent=2, ensure_ascii=False)
@@ -118,7 +122,7 @@ class ExplainerPlanner(Planner):
             self._truncate_nb(long_term)
 
             # when the long-term nb_state changes, updates the working state.
-            self.working_nb_state = deepcopy(self.nb_state)
+            self.reset_working_state()
         else:
             self.working_nb_state['cells'].append(_create_nb_cell(source, cell_type, outputs, duration))
             self._truncate_nb(long_term)

@@ -2,30 +2,35 @@
 EDA_PROMPT = """
 The current task is about exploratory data analysis, please note the following:
 - Distinguish column types with `select_dtypes` for tailored analysis and visualization, such as correlation.
-- Remember to `import numpy as np` before using Numpy functions.
+- Remember to import the correct packages before using them.
+- For performance, if the amount of data is to large, create analyses on samples instead of the whole set.
 """
 
 # Prompt for taking on "data_preprocess" tasks
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
+- Always check for missing values in both train and test sets.
 - Monitor data types per column, applying appropriate methods.
+- Make sure to differentiate categorical features represented as integers and numerical features.
 - Ensure operations are on existing dataset columns.
 - Avoid writing processed data to files.
 - **ATTENTION** Do NOT make any changes to the label column, such as standardization, etc.
-- Prefer alternatives to one-hot encoding for categorical data.
 - Only encode or scale necessary columns to allow for potential feature-specific engineering tasks (like time_extract, binning, extraction, etc.) later.
-- Each step do data preprocessing to train, must do same for test separately at the same time.
+- Each step do data preprocessing to train, must do same for test, in the same cell but separately, to prevent data leakage.
+- Remember to correctly encode categorical and numerical data.
+- Pay special attention to dates adn time data, if present.
+- To avoid creating excessive features, always check the amount of unique values in the feature before encoding. 
 - Always copy the DataFrame before processing it and use the copy to process.
 """
 
 # Prompt for taking on "feature_engineering" tasks
 FEATURE_ENGINEERING_PROMPT = """
 The current task is about feature engineering. when performing it, please adhere to the following principles:
-- Generate as diverse features as possible to improve the model's performance step-by-step. 
+- Generate features as diverse as possible to improve the model's performance. 
 - Use available feature engineering tools if they are potential impactful.
 - Avoid creating redundant or excessively numerous features in one step.
 - Exclude ID columns from feature generation and remove them.
-- Each feature engineering operation performed on the train set must also applies to the dev/test separately at the same time.
+- Each feature engineering operation performed on the train set must also applies to the dev/test, in the same cell but separately, to prevent data leakage.
 - **ATTENTION** Do NOT use the label column to create features, except for cat encoding.
 - Use the data from previous task result if exist, do not mock or reload data yourself.
 - Always copy the DataFrame before processing it and use the copy to process.
@@ -42,12 +47,14 @@ The current task is about training a model, please ensure high performance:
 - If non-numeric columns exist, perform label encode together with all steps.
 - Use the data from previous task result directly, do not mock or reload data yourself.
 - Set suitable hyperparameters for the model, make metrics as high as possible.
+- Make sure the model can be evaluated and trained in the system and time constraints.
+- When optimizing hyperparameters, make it will finish before the deadline.
 """
 
 # Prompt for taking on "model_evaluate" tasks
 MODEL_EVALUATE_PROMPT = """
 The current task is about evaluating a model, please note the following:
-- Ensure that the evaluated data is same processed as the training data. If not, remember use object in 'Done Tasks' to transform the data.
+- Ensure that the evaluated data is same processed as the training data. If not, remember use the same code as previously in the notebook to transform the data.
 - Use trained model from previous task result directly, do not mock or reload model yourself.
 """
 
