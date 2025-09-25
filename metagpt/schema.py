@@ -563,8 +563,8 @@ class Plan(BaseModel):
 
             # completed tasks are left unchanged
             for task in tasks:
-                if task.task_id in existing_tasks_map and existing_tasks_map[task.id].is_success:
-                    final_task_list.append(existing_tasks_map[task.id])
+                if task.task_id in existing_tasks_map and existing_tasks_map[task.task_id].is_success:
+                    final_task_list.append(existing_tasks_map[task.task_id])
                 else:
                     final_task_list.append(task)
             self.tasks = self._topological_sort(final_task_list)
