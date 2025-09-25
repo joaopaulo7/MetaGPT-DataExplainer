@@ -26,6 +26,7 @@ Based on the context, write an in depth plan or modify an existing plan of what 
 You can and should add plan re-evaluation tasks after important developments, such as after the initial data inspection and EDA.
 Try to be as granular as possible given the maximum number of tasks allowed. 
 If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
+If no change is needed, output an empy list `[]` inside de JSON block.
 Output a list of jsons following the format:
 ```json
 [
