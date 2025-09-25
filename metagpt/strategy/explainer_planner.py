@@ -124,7 +124,7 @@ class ExplainerPlanner(Planner):
             self._truncate_nb(long_term)
 
 
-    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 5, guidance: bool = False):
+    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 4, guidance: bool = False):
         if not max_tasks:
             max_tasks = self.max_tasks
         if goal:
