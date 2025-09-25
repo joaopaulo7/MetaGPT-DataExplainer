@@ -11,7 +11,7 @@ DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
 - Always check for missing values in both train and test sets.
 - Monitor data types per column, applying appropriate methods.
-- Make sure to differentiate categorical features represented as integers and numerical features.
+- Make sure to differentiate categorical features represented as integers from numerical features.
 - Ensure operations are on existing dataset columns.
 - Avoid writing processed data to files.
 - **ATTENTION** Do NOT make any changes to the label column, such as standardization, etc.
