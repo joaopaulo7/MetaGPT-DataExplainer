@@ -33,9 +33,9 @@ STREAM_CAP = 4096
 def simplified_task(task):
     return {
         "task_id": task.task_id,
-        "dependent_task_ids": task.dependent_task_ids,
         "instruction": task.instruction,
         "task_type": task.task_type,
+        "dependent_task_ids": task.dependent_task_ids
     }
 
 
