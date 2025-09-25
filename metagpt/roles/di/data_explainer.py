@@ -82,7 +82,7 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
-    async def _write_and_exec_code(self, max_retry: int = 1):
+    async def _write_and_exec_code(self, max_retry: int = 3):
         # plan info
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
 
