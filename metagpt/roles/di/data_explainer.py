@@ -11,7 +11,7 @@ from metagpt.actions.di.explain_and_write_analysis_code import ExplainAndWriteAn
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.roles.role import RoleReactMode
-from metagpt.schema import Message
+from metagpt.schema import Message, Task, TaskResult
 from metagpt.tools.tool_recommend import BM25ToolRecommender
 from metagpt.strategy.explainer_planner import ExplainerPlanner, _clean_outputs
 
@@ -52,6 +52,23 @@ class DataExplainer(DataInterpreter):
         self._set_state(0)
         return self
 
+
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
+        """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
+        is_success = False
+        if current_task.task_type == "update plan":
+            try:
+                await self.planner.update_plan(self.goal, guidance=True)
+                is_success = True
+            except Exception:
+                pass
+            task_result = TaskResult(code="", result="", is_success=is_success)
+        else:
+            code, result, is_success = await self._write_and_exec_code()
+            task_result = TaskResult(code=code, result=result, is_success=is_success)
+        return task_result
+
+
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
         assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
         self.rc.react_mode = react_mode
@@ -65,7 +82,7 @@ class DataExplainer(DataInterpreter):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", sent_from=self._setting, cause_by=ExplainAndWriteAnalysisCode)
 
-    async def _write_and_exec_code(self, max_retry: int = 3):
+    async def _write_and_exec_code(self, max_retry: int = 1):
         # plan info
         plan_status = self.planner.get_plan_status() if self.use_plan else ""
 

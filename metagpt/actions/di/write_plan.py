@@ -59,12 +59,6 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
     tasks = [Task(**task_config) for task_config in rsp]
 
     if len(tasks) == 1:
-        if tasks[0].dependent_task_ids and len(tasks) > 1:
-            # tasks[0].dependent_task_ids means the generated tasks are not a complete plan
-            # for they depend on tasks in the current plan, in this case, we only support updating one task each time
-            logger.warning(
-                "Current plan will take only the first generated task if the generated tasks are not a complete plan"
-            )
         # handle a single task
         if current_plan.has_task_id(tasks[0].task_id):
             # replace an existing task
@@ -77,11 +71,8 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
                 tasks[0].task_id, tasks[0].dependent_task_ids, tasks[0].instruction, tasks[0].assignee
             )
 
-    elif tasks[0].dependent_task_ids:
-        current_plan.add_tasks(tasks, addition=True)
     else:
-        # add tasks in general
-        current_plan.add_tasks(tasks)
+        current_plan.add_tasks(tasks, addition=True)
 
 
 def precheck_update_plan_from_rsp(rsp: str, current_plan: Plan) -> Tuple[bool, str]:

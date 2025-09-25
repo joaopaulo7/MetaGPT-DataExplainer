@@ -58,6 +58,14 @@ The current task is about converting image into webpage code. please note the fo
 - Save webpages: Be sure to use the save method provided.
 """
 
+# Prompt for updating prompts
+UPDATE_PLAN_PROMPT = """
+The current task is to update the current plan.
+- Use the current notebook state to fine-tune and improve the next tasks in the plan.
+- Do not changed completed tasks.
+- Make sure all dependent ids exist.
+"""
+
 # Prompt for taking on "web_scraping" tasks
 WEB_SCRAPING_PROMPT = """
 - Remember to view and print the necessary HTML content in a separate task to understand the structure first before scraping data. Such as `html_content = await view_page_element_to_scrape(...)\nprint(html_content)`.

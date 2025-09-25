@@ -25,8 +25,7 @@ PLAN_STATUS = """
 {next_tasks}
 
 ## Task Guidance
-Write code for the incomplete sections of 'Current Task'. And avoid duplicating code from 'Finished Tasks' and 'Finished Section of Current Task', such as repeated import of packages, reading data, etc.
-Specifically, {guidance}
+{guidance}
 """
 
 STREAM_CAP = 4096
@@ -76,8 +75,8 @@ def _clean_outputs(outputs):
 def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
     new_cell = {
         'cell_type': cell_type,
-        'source': source.splitlines(keepends=True),
-        'execution_time': duration
+        'execution_time': duration,
+        'source': source.splitlines(keepends=True)
     }
 
     if outputs:
@@ -125,7 +124,7 @@ class ExplainerPlanner(Planner):
             self._truncate_nb(long_term)
 
 
-    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 5):
+    async def update_plan(self, goal: str = "", max_tasks: int = None, max_retries: int = 5, guidance: bool = False):
         if not max_tasks:
             max_tasks = self.max_tasks
         if goal:
@@ -133,7 +132,7 @@ class ExplainerPlanner(Planner):
 
         plan_confirmed = False
         while not plan_confirmed:
-            context = self.get_context()
+            context = self.get_context(guidance=guidance)
             context_msg = [Message(content=context, role="user")]
             rsp = await WritePlan().run(context_msg, max_tasks=max_tasks)
             self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
@@ -141,7 +140,7 @@ class ExplainerPlanner(Planner):
             # precheck plan before asking reviews
             is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
             if not is_plan_valid and max_retries > 0:
-                error_msg = f"The generated plan is not valid with error: {error}, try regenerating. Make sure all dependent tasks exist."
+                error_msg = f"The generated plan is not valid with error: {str(error)}, try regenerating. Make sure all dependent tasks exist."
                 logger.warning(error_msg)
                 self.working_memory.add(Message(content=error_msg, role="user", cause_by=WritePlan))
                 max_retries -= 1
@@ -155,7 +154,7 @@ class ExplainerPlanner(Planner):
         self.working_memory.clear()
 
 
-    def get_context(self) -> str:
+    def get_context(self, guidance: bool = False) -> str:
         context = STRUCTURAL_CONTEXT.format(
             user_request=self.plan.goal,
             current_plan=self.get_plan_status(guidance=False),

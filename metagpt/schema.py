@@ -509,12 +509,22 @@ class Plan(BaseModel):
         visited = set()
 
         def visit(task_id):
+            depended_unfinished = False
             if task_id in visited:
-                return
-            visited.add(task_id)
-            for dependent_id in dependencies.get(task_id, []):
-                visit(dependent_id)
-            sorted_tasks.append(task_map[task_id])
+                pass
+            else:
+                visited.add(task_id)
+                for dependent_id in dependencies.get(task_id, []):
+                    if not visit(dependent_id):
+                        depended_unfinished = True
+                sorted_tasks.append(task_map[task_id])
+
+            # If is dependent on unfinished tasks, it must still be unfinished
+            if depended_unfinished or task_map[task_id].is_finished:
+                task_map[task_id].reset()
+                return False
+            else:
+                return True
 
         for task in tasks:
             visit(task.task_id)
@@ -539,36 +549,32 @@ class Plan(BaseModel):
         Returns:
             None: The method updates the internal state of the plan but does not return anything.
         """
-        if addition:
-            self.tasks = self._topological_sort(tasks+self.tasks)
-        else:
-            if not tasks:
-                return
+        if not tasks:
+            return
 
-            # Topologically sort the new tasks to ensure correct dependency order
+        if not self.tasks:
+            # If there are no existing tasks, set the new tasks as the current tasks
             new_tasks = self._topological_sort(tasks)
+            self.tasks = new_tasks
 
-            if not self.tasks:
-                # If there are no existing tasks, set the new tasks as the current tasks
-                self.tasks = new_tasks
+        else:
+            existing_tasks_map = {task.task_id: task for task in self.tasks}
+            final_task_list = []
 
-            else:
-                # Find the length of the common prefix between existing and new tasks
-                prefix_length = 0
-                for old_task, new_task in zip(self.tasks, new_tasks):
-                    if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
-                        break
-                    prefix_length += 1
-
-                # Combine the common prefix with the remainder of the new tasks
-                final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
-                self.tasks = final_tasks
+            # completed tasks are left unchanged
+            for task in tasks:
+                if task.task_id in existing_tasks_map and existing_tasks_map[task.id].is_success:
+                    final_task_list.append(existing_tasks_map[task.id])
+                else:
+                    final_task_list.append(task)
+            self.tasks = self._topological_sort(final_task_list)
 
         # Update current_task_id to the first unfinished task in the merged list
         self._update_current_task()
 
         # Update the task map for quick access to tasks by ID
         self.task_map = {task.task_id: task for task in self.tasks}
+
 
     def reset_task(self, task_id: str):
         """

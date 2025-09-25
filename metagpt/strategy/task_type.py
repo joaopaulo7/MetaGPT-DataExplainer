@@ -7,6 +7,7 @@ from metagpt.prompts.task_type import (
     EDA_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
     IMAGE2WEBPAGE_PROMPT,
+    UPDATE_PLAN_PROMPT,
     MODEL_EVALUATE_PROMPT,
     MODEL_TRAIN_PROMPT,
     WEB_SCRAPING_PROMPT,
@@ -52,6 +53,11 @@ class TaskType(Enum):
         name="image2webpage",
         desc="For converting image into webpage code.",
         guidance=IMAGE2WEBPAGE_PROMPT,
+    )
+    UPDATE_PLAN = TaskTypeDef(
+        name="update plan",
+        desc="For updating the plan after pivotal developments, such as data inspection. Avoid excessive updates.",
+        guidance=UPDATE_PLAN_PROMPT,
     )
     OTHER = TaskTypeDef(name="other", desc="Any tasks not in the defined categories")
 
