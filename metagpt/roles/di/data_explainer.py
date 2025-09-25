@@ -124,7 +124,7 @@ class DataExplainer(DataInterpreter):
 
             if not success:
                 self.working_memory.add(Message(
-                    content="There was an error during the execution of the last cell. Please correct it.",
+                    content="There was an error during the execution of the last cell. Please reason as to what is causing the error and correct it.",
                     role="user", cause_by=ExecuteNbCode))
             
             counter += 1
