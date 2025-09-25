@@ -56,7 +56,7 @@ class TaskType(Enum):
     )
     UPDATE_PLAN = TaskTypeDef(
         name="reevaluate plan",
-        desc="For reflecting on past results and updating the plan, if needed, in pivotal developments.",
+        desc="For reflecting on past results and updating the plan, if needed.",
         guidance=UPDATE_PLAN_PROMPT,
     )
     OTHER = TaskTypeDef(name="other", desc="Any tasks not in the defined categories")
