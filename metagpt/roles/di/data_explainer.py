@@ -56,7 +56,7 @@ class DataExplainer(DataInterpreter):
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
         is_success = False
-        if current_task.task_type == "reevaluate plan":
+        if current_task.task_type == "plan re-evaluation":
             try:
                 await self.planner.update_plan(self.goal, guidance=True)
                 is_success = True

@@ -562,11 +562,20 @@ class Plan(BaseModel):
             final_task_list = []
 
             # completed tasks are left unchanged
+            # Update existing tasks
+            updated_tasks = []
             for task in tasks:
                 if task.task_id in existing_tasks_map and existing_tasks_map[task.task_id].is_success:
                     final_task_list.append(existing_tasks_map[task.task_id])
+                    updated_tasks.append(task.task_id)
                 else:
                     final_task_list.append(task)
+
+            # Get unupdated existing tasks
+            for task in self.tasks:
+                if task.task_id not in updated_tasks:
+                    final_task_list.append(task)
+
             self.tasks = self._topological_sort(final_task_list)
 
         # Update current_task_id to the first unfinished task in the merged list

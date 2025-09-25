@@ -23,7 +23,7 @@ PROMPT_TEMPLATE: str = """
 {task_type_desc}
 # Task:
 Based on the context, write an in depth plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
-You can and should occasionally add tasks to reevaluate the plan after important developments, such as after the initial data inspection.
+You can and should add plan re-evaluation tasks after important developments, such as after the initial data inspection and EDA.
 Try to be as granular as possible given the maximum number of tasks allowed. 
 If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
 Output a list of jsons following the format:
@@ -71,7 +71,6 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
             current_plan.append_task(
                 tasks[0].task_id, tasks[0].dependent_task_ids, tasks[0].instruction, tasks[0].assignee
             )
-
     else:
         current_plan.add_tasks(tasks, addition=True)
 

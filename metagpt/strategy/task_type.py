@@ -55,7 +55,7 @@ class TaskType(Enum):
         guidance=IMAGE2WEBPAGE_PROMPT,
     )
     UPDATE_PLAN = TaskTypeDef(
-        name="reevaluate plan",
+        name="plan re-evaluation",
         desc="For reflecting on past results and updating the plan, if needed.",
         guidance=UPDATE_PLAN_PROMPT,
     )
