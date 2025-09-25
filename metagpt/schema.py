@@ -520,7 +520,7 @@ class Plan(BaseModel):
                 sorted_tasks.append(task_map[task_id])
 
             # If is dependent on unfinished tasks, it must still be unfinished
-            if depended_unfinished or task_map[task_id].is_finished:
+            if depended_unfinished and task_map[task_id].is_finished:
                 task_map[task_id].reset()
                 return False
             else:
