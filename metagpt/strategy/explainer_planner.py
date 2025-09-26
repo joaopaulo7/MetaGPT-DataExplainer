@@ -68,7 +68,7 @@ def _clean_outputs(outputs):
                 'ename': output['ename'],
                 'evalue': _remove_ansi_colors(output['evalue']),
                 # only get the most important traceback
-                'traceback': [_remove_ansi_colors(tb) for tb in output['traceback'][:2] + output['traceback'][-1:]]})
+                'traceback': [tb for tb in output['traceback'][:3] + output['traceback'][-2:]]})
     return new_outputs
 
 
