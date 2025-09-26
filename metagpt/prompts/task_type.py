@@ -1,6 +1,7 @@
 # Prompt for taking on "eda" tasks
 EDA_PROMPT = """
 The current task is about exploratory data analysis, please note the following:
+- Use the print command for textual outputs.
 - Distinguish column types with `select_dtypes` for tailored analysis and visualization, such as correlation.
 - Remember to import the correct packages before using them.
 - For performance, if the amount of data is to large, create analyses on samples instead of the whole set.
