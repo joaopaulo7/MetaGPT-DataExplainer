@@ -18,7 +18,7 @@ The current task is about data preprocessing, please note the following:
 - Only encode or scale necessary columns to allow for potential feature-specific engineering tasks (like time_extract, binning, extraction, etc.) later.
 - Each step do data preprocessing to train, must do same for test, in the same cell but separately, to prevent data leakage.
 - Remember to correctly encode categorical and numerical data.
-- Pay special attention to dates adn time data, if present.
+- Pay special attention to dates and time data, if present.
 - To avoid creating excessive features, always check the amount of unique categorical values in the feature before encoding.
 - Only encode categorical values if they are significantly represented in the data. 
 - Always copy the DataFrame before processing it and use the copy to process.
