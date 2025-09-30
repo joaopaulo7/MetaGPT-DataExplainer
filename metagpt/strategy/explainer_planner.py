@@ -55,7 +55,7 @@ def _clean_outputs(outputs):
                 continue
             new_outputs.append({
                 'output_type': "stream",
-                'text': output['text'][:STREAM_CAP*4]})
+                'text': output['text'][:STREAM_CAP*4].splitlines(keepends=True)})
 
         elif output['output_type'] == "display_data":
             new_outputs.append({
@@ -75,7 +75,7 @@ def _clean_outputs(outputs):
 def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration: str = "00:00:00"):
     new_cell = {
         'cell_type': cell_type,
-        'execution_time': duration,
+        'metadata': {'execution_time': duration},
         'source': source.splitlines(keepends=True)
     }
 
@@ -174,15 +174,15 @@ class ExplainerPlanner(Planner):
 
         for task in self.plan.tasks:
             if task.task_id == self.plan.current_task_id:
-                cleaned_current = json.dumps(simplified_task(task), indent=2, ensure_ascii=False)
+                cleaned_current = json.dumps(simplified_task(task), indent=1, ensure_ascii=False)
             elif task.is_finished:
                 cleaned_finished.append(simplified_task(task))
             else:
                 cleaned_next.append(simplified_task(task))
 
-        return (json.dumps(cleaned_finished, indent=2, ensure_ascii=False),
+        return (json.dumps(cleaned_finished, indent=1, ensure_ascii=False),
                 cleaned_current,
-                json.dumps(cleaned_next, indent=2, ensure_ascii=False))
+                json.dumps(cleaned_next, indent=1, ensure_ascii=False))
 
 
     def get_plan_status(self, exclude: List[str] = None, guidance: bool = True) -> str:

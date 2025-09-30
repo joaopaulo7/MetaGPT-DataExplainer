@@ -12,12 +12,12 @@ Write in a clear and informative manner.
 You must use the following output format, ensuring every source line ends with a newline character `\\n`:
 ```json
 {
-  "cell_type": "markdown",
-  "source": [
-    "<first_line>\\n",
-    "<second_line>\\n",
-    "<last_line>\\n"
-  ]
+ "cell_type": "markdown",
+ "source": [
+  "<first_line>\\n",
+  "<second_line>\\n",
+  "<last_line>\\n"
+ ]
 }
 ```
 """
@@ -47,12 +47,12 @@ You should add your reasoning before the JSON code block.
 Example:
 ```json
 {
-  "cell_type": "markdown",
-  "source": [
-    "## Example cell\\n",
-    "this is the second line of the example cell\\n",
-    "This is the last line\\n"
-  ]
+ "cell_type": "markdown",
+ "source": [
+  "## Example cell\\n",
+  "this is the second line of the example cell\\n",
+  "This is the last line\\n"
+ ]
 }
 ```
 """
@@ -84,17 +84,16 @@ You should add your reasoning before the JSON code block.
 Example:
 ```json
 {
-  "cell_type": "code",
-  "source": [
-    "print('hello world!')\\n",
-    "print('hello world!!')\\n",
-    "print(\\"hello world!!!\\")\\n"
-  ]
+ "cell_type": "code",
+ "source": [
+  "print('hello world!')\\n",
+  "print('hello world!!')\\n",
+  "print(\\"hello world!!!\\")\\n"
+ ]
 }
 ```
-```
 
-if no python code is required:
+if no code is required:
 ```json
 {
 "cell_type": "code",
