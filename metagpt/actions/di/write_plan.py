@@ -23,8 +23,9 @@ PROMPT_TEMPLATE: str = """
 {task_type_desc}
 # Task:
 Based on the context, write an in depth plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
-You can and should add plan re-evaluation tasks after important developments, such as after the initial data inspection and EDA.
-Try to be as granular as possible given the maximum number of tasks allowed. 
+You can add plan re-evaluation tasks after important developments, such as after the initial data inspection and EDA.
+Use task dependency to establish the sequence the plan must follow.
+Try to be granular with the tasks, given the maximum number allowed. 
 If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
 If no change is needed, output an empy list `[]` inside de JSON block.
 Output a list of jsons following the format:
