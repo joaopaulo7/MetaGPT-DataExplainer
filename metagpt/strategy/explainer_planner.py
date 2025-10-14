@@ -51,7 +51,7 @@ def _clean_outputs(outputs):
     new_outputs = []
     for output in outputs:
         if output['output_type'] == "stream":
-            if "WARNING:" in output['text']:
+            if "WARNING:" in output['text'] or "FutureWarning:" in output['text']:
                 continue
             new_outputs.append({
                 'output_type': "stream",
