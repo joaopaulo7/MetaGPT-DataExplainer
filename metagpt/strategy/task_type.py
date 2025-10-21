@@ -54,11 +54,11 @@ class TaskType(Enum):
         desc="For converting image into webpage code.",
         guidance=IMAGE2WEBPAGE_PROMPT,
     )
-    UPDATE_PLAN = TaskTypeDef(
-        name="plan re-evaluation",
-        desc="For reflecting on past results and updating the plan, if needed.",
-        guidance=UPDATE_PLAN_PROMPT,
-    )
+    #UPDATE_PLAN = TaskTypeDef(
+    #    name="plan re-evaluation",
+    #    desc="For reflecting on past results and updating the plan, if needed.",
+    #    guidance=UPDATE_PLAN_PROMPT,
+    #)
     OTHER = TaskTypeDef(name="other", desc="Any tasks not in the defined categories")
 
     # Legacy TaskType to support tool recommendation using type match. You don't need to define task types if you have no human priors to inject.
