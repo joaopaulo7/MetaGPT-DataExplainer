@@ -9,14 +9,16 @@ Currently, you must write a markdown title and an introduction cell to the noteb
 Write in a clear and informative manner.
 
 # Output
-You must use the following output format, ensuring every source line ends with a newline character `\\n`:
+Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
+Make sure all special characters are properly escaped, as per the JSON format.
+Ensure every source line ends with a newline character ´\\n´ and **never** a `\\\\n`.
 ```json
 {
  "cell_type": "markdown",
  "source": [
-  "<first_line>\\n",
-  "<second_line>\\n",
-  "<last_line>\\n"
+  "# Example Title cell\\n",
+  "this is the second line of the example title cell\\n",
+  "This is the last line\\n"
  ]
 }
 ```
