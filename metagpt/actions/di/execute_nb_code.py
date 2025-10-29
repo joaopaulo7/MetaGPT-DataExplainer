@@ -237,8 +237,9 @@ class ExecuteNbCode(Action):
                     return False, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
             return True, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
         except CellTimeoutError:
-            assert self.nb_client.km is not None
-            await self.nb_client.km.interrupt_kernel()
+            #assert self.nb_client.km is not None
+            #await self.nb_client.km.interrupt_kernel()
+            raise asyncio.TimeoutError()
             await asyncio.sleep(1)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
             return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
