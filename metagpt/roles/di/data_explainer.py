@@ -36,7 +36,7 @@ class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
     max_tasks: int = 12
-    max_nb_tokens: int = 28000
+    max_nb_tokens: int = 62000
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
