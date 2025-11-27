@@ -74,9 +74,11 @@ class ExecuteNbCode(Action):
     nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
-    timeout: int = 5400
+    timeout: int = 3600
+    max_timeouts: int = 1
+    timeouts: int = 0
 
-    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=5400):
+    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=3600):
         super().__init__(
             nb=nb,
             timeout=timeout,
@@ -237,9 +239,11 @@ class ExecuteNbCode(Action):
                     return False, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
             return True, self.nb.cells[-1].outputs #self.parse_outputs(self.nb.cells[-1].outputs)
         except CellTimeoutError:
-            #assert self.nb_client.km is not None
-            #await self.nb_client.km.interrupt_kernel()
-            raise asyncio.TimeoutError()
+            self.timeouts += 1
+            if self.timeouts > self.max_timeouts:
+                print(self.timeouts,"--", self.max_timeouts)
+                raise asyncio.TimeoutError()
+           
             await asyncio.sleep(1)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
             return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
