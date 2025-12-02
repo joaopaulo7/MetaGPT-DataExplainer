@@ -50,7 +50,7 @@ The current task is about training a model, please ensure high performance:
 - Use the data from previous task result directly, do not mock or reload data yourself.
 - Set suitable hyperparameters for the model, make metrics as high as possible.
 - Make sure the model can be evaluated and trained in the system and time constraints.
-- When optimizing hyperparameters, make it will finish before the deadline.
+- When optimizing hyperparameters, make it will finish before the deadline, if you have one; use time limits if necessary.
 """
 
 # Prompt for taking on "model_evaluate" tasks
