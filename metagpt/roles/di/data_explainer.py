@@ -36,12 +36,12 @@ class DataExplainer(DataInterpreter):
     name: str = "Edward"
     profile: str = "DataExplainer"
     max_tasks: int = 12
-    max_nb_tokens: int = 62000
+    max_context: int = 32000
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
 
     @model_validator(mode="after")
     def set_plan_and_tool(self) -> "Explainer":
-        self.planner = ExplainerPlanner(max_tasks=self.max_tasks, max_nb_tokens=self.max_nb_tokens)
+        self.planner = ExplainerPlanner(max_tasks=self.max_tasks, max_context=self.max_context)
         self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
         self.use_plan = (
             self.react_mode == "plan_and_act"

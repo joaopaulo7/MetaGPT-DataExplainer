@@ -87,9 +87,9 @@ def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration:
 
 
 class ExplainerPlanner(Planner):
-
     max_tasks: int = 16
-    max_nb_tokens: int = 28000
+    max_context: int = 32000
+    max_nb_tokens: int = 30000
     nb_state: dict = {"cells": []}
     working_nb_state: dict = {"cells": []}
 
@@ -154,15 +154,18 @@ class ExplainerPlanner(Planner):
 
         if plan_confirmed:
             update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
+            
+            # estimate context length and set max nb state context based on it (500 tokens as a 'safety margin')
+            self.max_nb_tokens = self.max_context - len(self.get_context(guidance=False, nb_state=False))//4 - 500
 
         self.working_memory.clear()
 
 
-    def get_context(self, guidance: bool = False) -> str:
+    def get_context(self, guidance: bool = False, nb_state: bool = True) -> str:
         context = STRUCTURAL_CONTEXT.format(
-            user_request=self.plan.goal,
-            current_plan=self.get_plan_status(guidance=False),
-            nb_state=self.get_nb_state()
+            user_request = self.plan.goal,
+            current_plan = self.get_plan_status(guidance=False),
+            nb_state = self.get_nb_state() if nb_state else ""
         )
         return context
 
