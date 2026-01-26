@@ -13,7 +13,6 @@ from typing import Literal, Tuple
 from queue import Empty
 
 import nbformat
-from django.contrib.messages.api import success
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionComplete, CellTimeoutError, DeadKernelError
 from nbclient.util import ensure_async
