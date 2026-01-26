@@ -10,6 +10,7 @@ import asyncio
 import base64
 import re
 from typing import Literal, Tuple
+from queue import Empty
 
 import nbformat
 from django.contrib.messages.api import success
@@ -49,7 +50,11 @@ class RealtimeOutputNotebookClient(NotebookClient):
         """Implement a feature to enable sending messages."""
         assert self.kc is not None
         while True:
-            msg = await ensure_async(self.kc.iopub_channel.get_msg(timeout=None))
+            try: 
+                # FIX: sometimes will raise an Empty exception for no reason.
+                msg = await ensure_async(self.kc.iopub_channel.get_msg(timeout=None))
+            except Empty:
+                return  
             await self._send_msg(msg)
 
             if msg["parent_header"].get("msg_id") == parent_msg_id:
