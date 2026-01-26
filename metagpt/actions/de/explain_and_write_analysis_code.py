@@ -10,7 +10,7 @@ import json
 from typing import Any, Coroutine
 
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
-from metagpt.prompts.di.explain_and_write_analysis_code import (
+from metagpt.prompts.de.explain_and_write_analysis_code import (
     DEBUG_REFLECTION_EXAMPLE,
     TITLE_SYSTEM_MSG,
     EXPLANATION_SYSTEM_MSG,

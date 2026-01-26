@@ -13,7 +13,7 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan, Task
-from metagpt.strategy.task_type import TaskType
+from metagpt.strategy.de.task_type import TaskType
 from metagpt.utils.common import CodeParser, ParsingErrorException
 
 PROMPT_TEMPLATE: str = """

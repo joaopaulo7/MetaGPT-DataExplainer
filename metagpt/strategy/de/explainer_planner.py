@@ -1,4 +1,11 @@
-from metagpt.strategy.planner import *
+from metagpt.strategy.planner import Planner
+from metagpt.actions.di.ask_review import AskReview, ReviewConst
+from metagpt.actions.de.write_plan import (
+    WritePlan,
+    precheck_update_plan_from_rsp,
+    update_plan_from_rsp,
+)
+from metagpt.schema import Message, ExplainerPlan
 from typing import Dict, Tuple
 from copy import deepcopy
 import re
@@ -132,7 +139,7 @@ class ExplainerPlanner(Planner):
         if not max_tasks:
             max_tasks = self.max_tasks
         if goal:
-            self.plan = Plan(goal=goal)
+            self.plan = ExplainerPlan(goal=goal)
 
         plan_confirmed = False
         while not plan_confirmed:

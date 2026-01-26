@@ -6,8 +6,8 @@ from typing import Literal, Tuple
 from pydantic import Field, model_validator
 
 from metagpt.actions import Action
-from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.actions.di.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
+from metagpt.actions.de.execute_nb_code import ExecuteNbCode
+from metagpt.actions.de.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.roles.role import RoleReactMode

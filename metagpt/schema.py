@@ -11,6 +11,8 @@
         2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
         between actions.
         3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
+@Modified By: joaopaulo7, 2026/01/26.
+        1. Added `ExplainerPlan`
 """
 
 from __future__ import annotations
@@ -727,6 +729,98 @@ class Plan(BaseModel):
             assignee=new_assignee,
         )
         return self._replace_task(new_task)
+
+
+class ExplainerPlan(Plan):
+    """Plan is a sequence of tasks towards a goal."""
+
+    goal: str
+    context: str = ""
+    tasks: list[Task] = []
+    task_map: dict[str, Task] = {}
+    current_task_id: str = ""
+
+    def _topological_sort(self, tasks: list[Task]):
+        task_map = {task.task_id: task for task in tasks}
+        dependencies = {task.task_id: set(task.dependent_task_ids) for task in tasks}
+        sorted_tasks = []
+        visited = set()
+
+        def visit(task_id):
+            depended_unfinished = False
+            if task_id in visited:
+                pass
+            else:
+                visited.add(task_id)
+                for dependent_id in dependencies.get(task_id, []):
+                    if not visit(dependent_id):
+                        depended_unfinished = True
+                sorted_tasks.append(task_map[task_id])
+
+            # If is dependent on unfinished tasks, it must still be unfinished
+            if depended_unfinished and task_map[task_id].is_finished:
+                task_map[task_id].reset()
+                return False
+            else:
+                return True
+
+        for task in tasks:
+            visit(task.task_id)
+
+        return sorted_tasks
+
+    def add_tasks(self, tasks: list[Task], addition: bool = False):
+        """
+        Integrates new tasks into the existing plan, ensuring dependency order is maintained.
+
+        This method performs two primary functions based on the current state of the task list:
+        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
+        correct execution order based on dependencies, and sets these as the current tasks.
+        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
+        any common prefix of tasks (based on task_id and instruction) and appends the remainder
+        of the new tasks. The current task is updated to the first unfinished task in this merged list.
+
+        Args:
+            tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
+            addition (bool): If the tasks are an addition to the plan, instead of a whole plan.
+
+        Returns:
+            None: The method updates the internal state of the plan but does not return anything.
+        """
+        if not tasks:
+            return
+
+        if not self.tasks:
+            # If there are no existing tasks, set the new tasks as the current tasks
+            new_tasks = self._topological_sort(tasks)
+            self.tasks = new_tasks
+
+        else:
+            existing_tasks_map = {task.task_id: task for task in self.tasks}
+            final_task_list = []
+
+            # completed tasks are left unchanged
+            # Update existing tasks
+            updated_tasks = []
+            for task in tasks:
+                if task.task_id in existing_tasks_map and existing_tasks_map[task.task_id].is_success:
+                    final_task_list.append(existing_tasks_map[task.task_id])
+                    updated_tasks.append(task.task_id)
+                else:
+                    final_task_list.append(task)
+
+            # Get unupdated existing tasks
+            for task in self.tasks:
+                if task.task_id not in updated_tasks:
+                    final_task_list.append(task)
+
+            self.tasks = self._topological_sort(final_task_list)
+
+        # Update current_task_id to the first unfinished task in the merged list
+        self._update_current_task()
+
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
 
 
 class MessageQueue(BaseModel):
