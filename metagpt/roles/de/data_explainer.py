@@ -13,7 +13,7 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.tools.tool_recommend import BM25ToolRecommender
-from metagpt.strategy.explainer_planner import ExplainerPlanner, _clean_outputs
+from metagpt.strategy.de.explainer_planner import ExplainerPlanner, _clean_outputs
 
 from time import sleep, gmtime, time, strftime
 

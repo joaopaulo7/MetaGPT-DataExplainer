@@ -1,3 +1,6 @@
+import json
+from typing import List
+
 from metagpt.strategy.planner import Planner
 from metagpt.actions.di.ask_review import AskReview, ReviewConst
 from metagpt.actions.de.write_plan import (
@@ -6,6 +9,8 @@ from metagpt.actions.de.write_plan import (
     update_plan_from_rsp,
 )
 from metagpt.schema import Message, ExplainerPlan
+from metagpt.strategy.de.task_type import TaskType
+
 from typing import Dict, Tuple
 from copy import deepcopy
 import re

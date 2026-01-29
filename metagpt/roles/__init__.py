@@ -18,6 +18,8 @@ from metagpt.roles.di.data_analyst import DataAnalyst
 from metagpt.roles.di.team_leader import TeamLeader
 from metagpt.roles.di.engineer2 import Engineer2
 
+from metagpt.roles.de.data_explainer import DataExplainer
+
 
 __all__ = [
     "Role",
@@ -31,4 +33,5 @@ __all__ = [
     "DataAnalyst",
     "TeamLeader",
     "Engineer2",
+    "DataExplainer",
 ]

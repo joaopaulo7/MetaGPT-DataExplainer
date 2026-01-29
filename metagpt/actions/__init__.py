@@ -4,6 +4,8 @@
 @Time    : 2023/5/11 17:44
 @Author  : alexanderwu
 @File    : __init__.py
+
+@ Modified by joaopaulo7 on 2026/01/29 
 """
 from enum import Enum
 
@@ -25,6 +27,11 @@ from metagpt.actions.write_test import WriteTest
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import WriteAnalysisCode
 from metagpt.actions.di.write_plan import WritePlan
+
+#explainer
+from metagpt.actions.de.execute_nb_code import ExecuteNbCode as  ExpExecuteNbCode
+from metagpt.actions.de.explain_and_write_analysis_code import ExplainAndWriteAnalysisCode
+from metagpt.actions.de.write_plan import WritePlan as ExpWritePlan
 
 
 class ActionType(Enum):
@@ -48,6 +55,11 @@ class ActionType(Enum):
     EXECUTE_NB_CODE = ExecuteNbCode
     WRITE_ANALYSIS_CODE = WriteAnalysisCode
     WRITE_PLAN = WritePlan
+    
+    #explainer
+    EXP_EXECUTE_NB_CODE = ExpExecuteNbCode
+    EXPLAIN_AND_WRITE_ANALYSIS_CODE = ExplainAndWriteAnalysisCode
+    EXP_WRITE_PLAN = ExpWritePlan
 
 
 __all__ = [

@@ -72,7 +72,7 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
                     json_dict = json.loads(CodeParser.parse_code(text=rsp, lang="json"), strict=False)
                     code = "".join(json_dict['source'])
                 success = True
-            except (ParsingErrorException, json.decoder.JSONDecodeError) as e:
+            except (ParsingErrorException, json.decoder.JSONDecodeError, KeyError) as e:
                 error_msg.append(Message(content=rsp, role="assistant"))
                 error_msg.append(Message(content=f"{CORRECTION_PROMPT}\n{str(e)}", role="user"))
 
