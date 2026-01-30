@@ -18,7 +18,8 @@ from metagpt.prompts.de.explain_and_write_analysis_code import (
     EXPLANATION_STRUCTURAL_PROMPT,
     CODE_STRUCTURAL_PROMPT,
     REFLECTION_PROMPT,
-    REFLECTION_SYSTEM_MSG, TITLE_STRUCTURAL_PROMPT,
+    REFLECTION_SYSTEM_MSG,
+    TITLE_STRUCTURAL_PROMPT,
 )
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, ParsingErrorException
@@ -128,7 +129,6 @@ class ExplainAndWriteAnalysisCode(WriteAnalysisCode):
             plan_status=plan_status,
             nb_state=nb_state
         )
-
 
         return await self._ask_and_parse_json(structural_prompt, EXPLANATION_SYSTEM_MSG, working_memory, use_reflection,
                                               memory, **kwargs)
