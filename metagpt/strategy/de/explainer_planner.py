@@ -115,7 +115,7 @@ class ExplainerPlanner(Planner):
 
     def get_nb_state(self, long_term: bool = False) -> str:
         nb_state = ""
-        if self.toon:
+        if not self.toon:
             if long_term:
                 nb_state = json.dumps(self.nb_state, indent=2, ensure_ascii=False)
             else:
