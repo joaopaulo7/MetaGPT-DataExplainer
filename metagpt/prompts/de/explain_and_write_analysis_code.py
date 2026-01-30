@@ -11,7 +11,7 @@ Write in a clear and informative manner.
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are properly escaped, as per the JSON format.
-Ensure every source line ends with a newline character ´\\n´ and **never** a `\\\\n`.
+Ensure every source line ends with a newline character `\\n` and **never** a `\\\\n`.
 ```json
 {
  "cell_type": "markdown",
@@ -44,7 +44,7 @@ Write in a didactic manner. If there was an error in the previous execution, des
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are properly escaped, as per the JSON format.
-Ensure every source line ends with a newline character ´\\n´ and **never** a `\\\\n`.
+Ensure every source line ends with a newline character `\\n` and **never** a `\\\\n`.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
@@ -81,7 +81,7 @@ If you want to use shell commands such as git clone, pip install packages, navig
 # Output
 Your output **must include a triple tick JSON code block**, similar to those of jupyter notebooks.
 Make sure all special characters are properly escaped, as per the JSON format.
-Ensure every source line ends with a newline character ´\\n´ and **never** a `\\\\n`.
+Ensure every source line ends with a newline character `\\n` and **never** a `\\\\n`.
 You should add your reasoning before the JSON code block.
 Example:
 ```json
