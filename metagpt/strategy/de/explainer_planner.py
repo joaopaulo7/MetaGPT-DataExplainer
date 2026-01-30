@@ -10,7 +10,6 @@ from metagpt.actions.de.write_plan import (
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
 )
-)
 from metagpt.logs import logger
 from metagpt.schema import Message, ExplainerPlan
 from metagpt.strategy.de.task_type import TaskType
