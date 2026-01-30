@@ -1,6 +1,8 @@
 import json
 from typing import List
 
+from toon_format import encode as toon_encode
+
 from metagpt.strategy.planner import Planner
 from metagpt.actions.di.ask_review import AskReview, ReviewConst
 from metagpt.actions.de.write_plan import (
@@ -8,6 +10,8 @@ from metagpt.actions.de.write_plan import (
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
 )
+)
+from metagpt.logs import logger
 from metagpt.schema import Message, ExplainerPlan
 from metagpt.strategy.de.task_type import TaskType
 
@@ -99,6 +103,7 @@ def _create_nb_cell(source: str, cell_type: str, outputs: list = None, duration:
 
 
 class ExplainerPlanner(Planner):
+    toon: bool = False
     max_tasks: int = 16
     max_context: int = 32000
     max_nb_tokens: int = 30000
@@ -110,11 +115,22 @@ class ExplainerPlanner(Planner):
         self.working_nb_state = deepcopy(self.nb_state)
 
     def get_nb_state(self, long_term: bool = False) -> str:
-        if long_term:
-            return json.dumps(self.nb_state, indent=2, ensure_ascii=False)
+        nb_state = ""
+        if self.toon:
+            if long_term:
+                nb_state = json.dumps(self.nb_state, indent=2, ensure_ascii=False)
+            else:
+                nb_state = json.dumps(self.working_nb_state, indent=2, ensure_ascii=False)
+            
+            return f"```ipynb\n{nb_state}\n```"
         else:
-            return json.dumps(self.working_nb_state, indent=2, ensure_ascii=False)
+            if long_term:
+                nb_state = toon_encode(self.nb_state)
+            else:
+                nb_state = toon_encode(self.working_nb_state)
+            return f"```toon\n{nb_state}\n```"
 
+    
     def _truncate_nb(self, long_term: bool = False) -> None:
         if long_term:
             while len(self.get_nb_state(long_term)) > self.max_nb_tokens*4:
