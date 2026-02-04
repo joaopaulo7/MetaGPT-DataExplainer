@@ -251,12 +251,11 @@ class ExecuteNbCode(Action):
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
             return False, [{"output_type": "error", "ename": "timeout", "evalue": error_msg, 'traceback': [""]}]
         except DeadKernelError as e:
-            await self.reset()
-            return False, [{"output_type": "error",
-                            "ename": "DeadKernelError! Kernel will be restarted and the memory wiped.",
-                            "evalue": str(e), 'traceback': [""]}]
-        except TimeoutError as e:
             raise e
+            #await self.reset()
+            #return False, [{"output_type": "error",
+            #                "ename": "DeadKernelError! Kernel will be restarted and the memory wiped.",
+            #                "evalue": str(e), 'traceback': [""]}]
         except Exception as e:
             return False, self.nb.cells[-1].outputs # self.parse_outputs(self.nb.cells[-1].outputs)
 
