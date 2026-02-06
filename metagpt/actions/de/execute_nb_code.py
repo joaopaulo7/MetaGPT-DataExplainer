@@ -3,6 +3,9 @@
 @Date    :   2023/11/17 14:22:15
 @Author  :   orange-crow
 @File    :   execute_nb_code.py
+
+Modified by: joaopaulo7
+in: 2026/02/06 
 """
 from __future__ import annotations
 
@@ -233,7 +236,6 @@ class ExecuteNbCode(Action):
         """set timeout for run code.
         returns the success or failure of the cell execution, and an optional error message.
         """
-
         await self.reporter.async_report(cell, "content")
 
         try:
@@ -245,7 +247,7 @@ class ExecuteNbCode(Action):
         except CellTimeoutError:
             self.timeouts += 1
             if self.timeouts > self.max_timeouts:
-                raise asyncio.TimeoutError()
+                raise TimeoutError()
            
             await asyncio.sleep(15)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."

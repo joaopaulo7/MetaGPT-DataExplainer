@@ -3,6 +3,9 @@
 @Date    :   2023/11/17 14:22:15
 @Author  :   orange-crow
 @File    :   execute_nb_code.py
+
+Modified by: joaopaulo7
+in: 2026/02/06 
 """
 from __future__ import annotations
 
@@ -10,6 +13,7 @@ import asyncio
 import base64
 import re
 from typing import Literal, Tuple
+from queue import Empty
 
 import nbformat
 from nbclient import NotebookClient
@@ -48,7 +52,11 @@ class RealtimeOutputNotebookClient(NotebookClient):
         """Implement a feature to enable sending messages."""
         assert self.kc is not None
         while True:
-            msg = await ensure_async(self.kc.iopub_channel.get_msg(timeout=None))
+            try: 
+                # FIX: sometimes will raise an Empty exception for no reason.
+                msg = await ensure_async(self.kc.iopub_channel.get_msg(timeout=None))
+            except Empty:
+                return  
             await self._send_msg(msg)
 
             if msg["parent_header"].get("msg_id") == parent_msg_id:
@@ -73,9 +81,11 @@ class ExecuteNbCode(Action):
     nb_client: RealtimeOutputNotebookClient = None
     console: Console
     interaction: str
-    timeout: int = 600
+    timeout: int = 3600
+    max_timeouts: int = 1
+    timeouts: int = 0
 
-    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=600):
+    def __init__(self, nb=nbformat.v4.new_notebook(), timeout=3600):
         super().__init__(
             nb=nb,
             timeout=timeout,
@@ -232,14 +242,17 @@ class ExecuteNbCode(Action):
             await self.nb_client.async_execute_cell(cell, cell_index)
             return self.parse_outputs(self.nb.cells[-1].outputs)
         except CellTimeoutError:
-            assert self.nb_client.km is not None
-            await self.nb_client.km.interrupt_kernel()
-            await asyncio.sleep(1)
+            self.timeouts += 1
+            if self.timeouts > self.max_timeouts:
+                raise TimeoutError()
+           
+            await asyncio.sleep(15)
             error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
             return False, error_msg
-        except DeadKernelError:
-            await self.reset()
-            return False, "DeadKernelError"
+        except DeadKernelError as e:
+            raise e
+            #await self.reset()
+            #return False, "DeadKernelError"
         except Exception:
             return self.parse_outputs(self.nb.cells[-1].outputs)
 
@@ -261,11 +274,11 @@ class ExecuteNbCode(Action):
                 cell_index = len(self.nb.cells) - 1
                 success, outputs = await self.run_cell(self.nb.cells[-1], cell_index)
 
-                if "!pip" in code:
-                    success = False
-                    outputs = outputs[-INSTALL_KEEPLEN:]
-                elif "git clone" in code:
-                    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
+                #if "!pip" in code:
+                #    success = False
+                #    outputs = outputs[-INSTALL_KEEPLEN:]
+                #elif "git clone" in code:
+                #    outputs = outputs[:INSTALL_KEEPLEN] + "..." + outputs[-INSTALL_KEEPLEN:]
 
             elif language == "markdown":
                 # add markdown content to markdown cell in a notebook.
